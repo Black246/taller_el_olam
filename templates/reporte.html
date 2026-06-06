@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">📄 Reporte de Inventario</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <strong>Fecha:</strong> {{ now.strftime('%d/%m/%Y %H:%M') }}
+            </div>
+            <div class="col-md-6 text-end">
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir</button>
+                <button class="btn btn-success" onclick="exportarPDF()">📄 Exportar PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6>Total productos</h6>
+                <h3>{{ productos|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6>Valor total inventario</h6>
+                <h3>${{ "%.2f"|format(total_valor) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6>Productos bajo stock</h6>
+                <h3 class="text-danger">{{ productos_bajo_stock|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla completa -->
+<div class="card">
+    <div class="card-header">
+        <strong>📋 Inventario detallado</strong>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered" id="reporteTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Precio Compra</th>
+                    <th>Precio Venta</th>
+                    <th>Valor Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr class="{% if p.stock <= p.stock_minimo %}table-danger{% endif %}">
+                    <td>{{ p.codigo }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td>{{ p.categoria or '-' }}</td>
+                    <td>{{ p.stock }}</td>
+                    <td>{{ p.stock_minimo }}</td>
+                    <td>${{ "%.2f"|format(p.precio_compra) }}</td>
+                    <td>${{ "%.2f"|format(p.precio_venta) }}</td>
+                    <td>${{ "%.2f"|format(p.stock * p.precio_compra) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">No hay productos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-secondary">
+                <tr>
+                    <th colspan="7" class="text-end">TOTAL VALOR INVENTARIO:</th>
+                    <th>${{ "%.2f"|format(total_valor) }}</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<script>
+    function exportarPDF() {
+        alert('Para generar PDF, instala ReportLab:\npip install reportlab\n\nLuego implementa la exportación');
+        // Puedes implementar una llamada a /exportar_pdf
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">🧾 Facturación POS</h1>
+
+<div class="row">
+    <!-- Carrito de compras -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <strong>🛒 Carrito de Ventas</strong>
+            </div>
+            <div class="card-body" style="min-height: 400px;">
+                <div id="carrito-lista">
+                    <p class="text-muted text-center">No hay productos agregados</p>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Subtotal:</strong>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>IVA (19%):</strong>
+                        <span id="iva">$0</span>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <h4>Total: <span id="total">$0</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buscador de productos -->
+    <div class="col-md-7">
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <strong>🔍 Buscar Producto</strong>
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <input type="text" id="buscar-producto" class="form-control form-control-lg" 
+                            placeholder="Código de barra o nombre del producto" autofocus>
+                    <button class="btn btn-primary" id="btn-buscar">Buscar</button>
+                </div>
+                <div id="resultado-busqueda" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Datos del cliente -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <strong>👤 Datos del Cliente</strong>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <label>Nombre / Razón Social</label>
+                        <input type="text" id="cliente-nombre" class="form-control" placeholder="CONSUMIDOR FINAL">
+                    </div>
+                    <div class="col-md-4">
+                        <label>R.U.T. / Documento</label>
+                        <input type="text" id="cliente-documento" class="form-control" placeholder="Opcional">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label>Método de Pago</label>
+                        <select id="metodo-pago" class="form-control">
+                            <option value="EFECTIVO">💵 Efectivo</option>
+                            <option value="TARJETA_DEBITO">💳 Tarjeta Débito</option>
+                            <option value="TARJETA_CREDITO">💳 Tarjeta Crédito</option>
+                            <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button id="btn-generar-factura" class="btn btn-success btn-lg w-100">
+                🧾 GENERAR FACTURA Y COBRAR
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let carrito = [];
+    let productosData = {{ productos | tojson }};
+    
+    const buscarInput = document.getElementById('buscar-producto');
+    const buscarBtn = document.getElementById('btn-buscar');
+    const resultadoBusqueda = document.getElementById('resultado-busqueda');
+    
+    // Buscar producto
+    async function buscarProducto(termino) {
+        if (!termino || termino.length < 2) return;
+        
+        // Buscar en los productos locales
+        const producto = productosData.find(p => 
+            p.codigo.toLowerCase().includes(termino.toLowerCase()) || 
+            p.nombre.toLowerCase().includes(termino.toLowerCase())
+        );
+        
+        if (producto) {
+            mostrarResultado(producto);
+        } else {
+            resultadoBusqueda.style.display = 'block';
+            resultadoBusqueda.innerHTML = '<div class="alert alert-warning">Producto no encontrado</div>';
+        }
+    }
+    
+    function mostrarResultado(producto) {
+        resultadoBusqueda.style.display = 'block';
+        resultadoBusqueda.innerHTML = `
+            <div class="alert alert-success">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <strong>${producto.nombre}</strong><br>
+                        Código: ${producto.codigo}<br>
+                        Stock: ${producto.stock} | Precio: $${producto.precio_venta}
+                    </div>
+                    <div class="col-4">
+                        <input type="number" id="cantidad-${producto.id}" class="form-control" value="1" min="1" max="${producto.stock}">
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-primary" onclick="agregarAlCarrito(${producto.id}, '${producto.nombre}', ${producto.precio_venta}, ${producto.stock})">
+                            ➕ Agregar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function agregarAlCarrito(id, nombre, precio, stockMax) {
+        const cantidadInput = document.getElementById(`cantidad-${id}`);
+        const cantidad = parseInt(cantidadInput.value);
+        
+        if (cantidad > stockMax) {
+            alert(`Stock insuficiente. Solo hay ${stockMax} unidades disponibles.`);
+            return;
+        }
+        
+        const itemExistente = carrito.find(item => item.id === id);
+        if (itemExistente) {
+            if (itemExistente.cantidad + cantidad > stockMax) {
+                alert(`Stock insuficiente. Solo hay ${stockMax} disponibles.`);
+                return;
+            }
+            itemExistente.cantidad += cantidad;
+        } else {
+            carrito.push({
+                id: id,
+                nombre: nombre,
+                precio: precio,
+                cantidad: cantidad
+            });
+        }
+        
+        actualizarCarrito();
+        resultadoBusqueda.style.display = 'none';
+        buscarInput.value = '';
+        buscarInput.focus();
+    }
+    
+    function actualizarCarrito() {
+        const carritoLista = document.getElementById('carrito-lista');
+        
+        if (carrito.length === 0) {
+            carritoLista.innerHTML = '<p class="text-muted text-center">No hay productos agregados</p>';
+            return;
+        }
+        
+        let subtotal = 0;
+        let html = '<table class="table table-sm">';
+        html += '<thead><tr><th>Producto</th><th>Cant</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead><tbody>';
+        
+        carrito.forEach((item, index) => {
+            const itemSubtotal = item.cantidad * item.precio;
+            subtotal += itemSubtotal;
+            html += `
+                <tr>
+                    <td>${item.nombre}</td>
+                    <td>${item.cantidad}</td>
+                    <td>$${item.precio}</td>
+                    <td>$${itemSubtotal}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="eliminarDelCarrito(${index})">🗑️</button></td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table>';
+        carritoLista.innerHTML = html;
+        
+        const iva = subtotal * 0.19;
+        const total = subtotal + iva;
+        
+        document.getElementById('subtotal').innerHTML = `$${subtotal.toLocaleString()}`;
+        document.getElementById('iva').innerHTML = `$${iva.toLocaleString()}`;
+        document.getElementById('total').innerHTML = `$${total.toLocaleString()}`;
+    }
+    
+    function eliminarDelCarrito(index) {
+        carrito.splice(index, 1);
+        actualizarCarrito();
+    }
+    
+    async function generarFactura() {
+        if (carrito.length === 0) {
+            alert('Agrega productos al carrito primero');
+            return;
+        }
+        
+        const clienteNombre = document.getElementById('cliente-nombre').value || 'CONSUMIDOR FINAL';
+        const clienteDocumento = document.getElementById('cliente-documento').value;
+        const metodoPago = document.getElementById('metodo-pago').value;
+        
+        const items = carrito.map(item => ({
+            producto_id: item.id,
+            cantidad: item.cantidad,
+            precio: item.precio
+        }));
+        
+        const btn = document.getElementById('btn-generar-factura');
+        btn.disabled = true;
+        btn.innerHTML = 'Procesando...';
+        
+        try {
+            const response = await fetch('/crear_factura', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cliente_nombre: clienteNombre,
+                    cliente_documento: clienteDocumento,
+                    metodo_pago: metodoPago,
+                    items: items
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(`Factura ${data.folio} generada exitosamente. Total: $${data.total.toLocaleString()}`);
+                
+                // Descargar PDF
+                window.open(data.pdf_url, '_blank');
+                
+                // Limpiar carrito
+                carrito = [];
+                actualizarCarrito();
+                document.getElementById('cliente-nombre').value = '';
+                document.getElementById('cliente-documento').value = '';
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo generar la factura'));
+            }
+        } catch (error) {
+            alert('Error de conexión: ' + error);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '🧾 GENERAR FACTURA Y COBRAR';
+        }
+    }
+    
+    buscarBtn.addEventListener('click', () => buscarProducto(buscarInput.value));
+    buscarInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') buscarProducto(buscarInput.value);
+    });
+    
+    document.getElementById('btn-generar-factura').addEventListener('click', generarFactura);
+</script>
+{% endblock %}

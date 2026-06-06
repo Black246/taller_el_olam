@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📦 Productos</h1>
+    <a href="{{ url_for('nuevo_producto') }}" class="btn btn-success">➕ Nuevo Producto</a>
+</div>
+
+<!-- Buscador -->
+<div class="card mb-4">
+    <div class="card-body">
+        <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar por código o nombre...">
+    </div>
+</div>
+
+<!-- Tabla de productos -->
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped" id="tablaProductos">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Precio Venta</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.codigo }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.categoria or '-' }}</td>
+                    <td class="{% if producto.stock <= producto.stock_minimo %}bg-danger text-white{% endif %}">
+                        {{ producto.stock }}
+                    </td>
+                    <td>{{ producto.stock_minimo }}</td>
+                    <td>${{ "%.2f"|format(producto.precio_venta) }}</td>
+                    <td>{{ producto.ubicacion or '-' }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editarProducto({{ producto.id }})">✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarProducto({{ producto.id }})">🗑️</button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">No hay productos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Buscador en tiempo real
+    document.getElementById('buscador').addEventListener('keyup', function() {
+        let filtro = this.value.toLowerCase();
+        let filas = document.querySelectorAll('#tablaProductos tbody tr');
+        
+        filas.forEach(fila => {
+            let texto = fila.innerText.toLowerCase();
+            if (texto.includes(filtro)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    });
+    
+    function editarProducto(id) {
+        alert('Funcionalidad de edición - Producto ID: ' + id);
+        // Aquí puedes redirigir a una página de edición
+        // window.location.href = '/producto/editar/' + id;
+    }
+    
+    function eliminarProducto(id) {
+        if(confirm('¿Eliminar este producto?')) {
+            alert('Eliminar producto ID: ' + id);
+            // Aquí llamas a la API de eliminación
+        }
+    }
+</script>
+{% endblock %}

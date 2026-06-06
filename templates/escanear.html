@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">📷 Escanear Código de Barra</h1>
+
+    <div class="row">
+        <!-- Panel del escáner -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <strong>🔍 Escáner por Cámara</strong>
+                </div>
+
+                <div class="card-body text-center">
+
+                    <!-- Quagga insertará aquí el video -->
+                    <div id="scanner-container"></div>
+
+                    <div class="mt-3">
+                        <button id="start-scanner" class="btn btn-primary">
+                            ▶ Iniciar Cámara
+                        </button>
+
+                        <button id="stop-scanner"
+                                class="btn btn-danger"
+                                style="display:none;">
+                            ⏹ Detener
+                        </button>
+                    </div>
+
+                    <p class="text-muted mt-3 mb-0">
+                        <small>Acerca el código de barras a la cámara</small>
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultado -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <strong>📦 Resultado / Entrada Manual</strong>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Código de barra (manual o escáner)
+                        </label>
+
+                        <input
+                            type="text"
+                            id="codigo-input"
+                            class="form-control form-control-lg"
+                            placeholder="Escanea o escribe el código"
+                            autofocus
+                        >
+
+                        <small class="text-muted">
+                            Si usas un lector USB, enfoca este campo.
+                        </small>
+                    </div>
+
+                    <div id="resultado" style="display:none;">
+                        <div id="resultado-alert" class="alert">
+
+                            <h5 id="producto-nombre"></h5>
+
+                            <p id="producto-info"></p>
+
+                        </div>
+
+                        <div id="acciones-producto" class="mt-3"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quagga -->
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
+<script>
+let scannerActive = false;
+let detectionHandler = null;
+
+const codigoInput = document.getElementById('codigo-input');
+const resultadoDiv = document.getElementById('resultado');
+const resultadoAlert = document.getElementById('resultado-alert');
+const productoNombre = document.getElementById('producto-nombre');
+const productoInfo = document.getElementById('producto-info');
+const accionesDiv = document.getElementById('acciones-producto');
+
+const startBtn = document.getElementById('start-scanner');
+const stopBtn = document.getElementById('stop-scanner');
+
+let ultimoCodigoEscaneado = '';
+
+async function buscarProducto(codigo) {
+
+    if (!codigo || codigo.length < 3) return;
+
+    ultimoCodigoEscaneado = codigo;
+
+    try {
+
+        const response = await fetch(
+            `/buscar_por_codigo?codigo=${encodeURIComponent(codigo)}`
+        );
+
+        const data = await response.json();
+
+        if (data.encontrado) {
+
+            resultadoAlert.className = 'alert alert-success';
+
+            productoNombre.innerHTML = `✅ ${data.nombre}`;
+
+            productoInfo.innerHTML = `
+                <strong>Código:</strong> ${data.codigo}<br>
+                <strong>Stock:</strong> ${data.stock} unidades<br>
+                <strong>Precio:</strong> $${data.precio_venta}
+            `;
+
+            accionesDiv.innerHTML = `
+                <button
+                    onclick="location.href='/salida?producto_id=${data.id}'"
+                    class="btn btn-warning">
+                    🔧 Registrar Salida
+                </button>
+
+                <button
+                    onclick="location.href='/producto/editar/${data.id}'"
+                    class="btn btn-info">
+                    ✏️ Editar Producto
+                </button>
+            `;
+
+        } else {
+
+            resultadoAlert.className = 'alert alert-warning';
+
+            productoNombre.innerHTML =
+                '⚠️ Producto no encontrado';
+
+            productoInfo.innerHTML =
+                `El código "${codigo}" no existe en el inventario.`;
+
+            accionesDiv.innerHTML = `
+                <button
+                    onclick="crearNuevoProducto('${codigo}')"
+                    class="btn btn-success">
+                    ➕ Crear nuevo producto
+                </button>
+            `;
+        }
+
+        resultadoDiv.style.display = 'block';
+
+    } catch (error) {
+
+        console.error(error);
+
+        resultadoAlert.className = 'alert alert-danger';
+
+        productoNombre.innerHTML =
+            '❌ Error de conexión';
+
+        productoInfo.innerHTML =
+            'No se pudo conectar con el servidor.';
+
+        resultadoDiv.style.display = 'block';
+    }
+}
+
+function crearNuevoProducto(codigo) {
+    window.location.href =
+        `/producto/nuevo?codigo=${encodeURIComponent(codigo)}`;
+}
+
+/* Entrada manual */
+codigoInput.addEventListener('change', function () {
+
+    buscarProducto(this.value.trim());
+
+    this.value = '';
+});
+
+/* Iniciar cámara */
+startBtn.addEventListener('click', function () {
+
+    if (scannerActive) return;
+
+    Quagga.init({
+
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#scanner-container'),
+            constraints: {
+                width: 640,
+                height: 480,
+                facingMode: "environment"
+            }
+        },
+
+        decoder: {
+            readers: [
+                "ean_reader",
+                "ean_8_reader",
+                "code_128_reader",
+                "code_39_reader",
+                "upc_reader"
+            ]
+        }
+
+    }, function(err) {
+
+        if (err) {
+
+            console.error(err);
+
+            alert(
+                "No se pudo iniciar la cámara. Verifica permisos."
+            );
+
+            return;
+        }
+
+        Quagga.start();
+
+        scannerActive = true;
+
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-block';
+    });
+
+    if (detectionHandler) {
+        Quagga.offDetected(detectionHandler);
+    }
+
+    detectionHandler = function(data) {
+
+        const codigo = data.codeResult.code;
+
+        codigoInput.value = codigo;
+
+        buscarProducto(codigo);
+
+        Quagga.stop();
+
+        scannerActive = false;
+
+        startBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
+    };
+
+    Quagga.onDetected(detectionHandler);
+});
+
+/* Detener cámara */
+stopBtn.addEventListener('click', function() {
+
+    Quagga.stop();
+
+    scannerActive = false;
+
+    startBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'none';
+});
+</script>
+
+{% endblock %}

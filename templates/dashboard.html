@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">📊 Dashboard</h1>
+
+<!-- Tarjetas de estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">✅ Productos</h5>
+                <h2>{{ total_productos }}</h2>
+                <small>en inventario</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">⚠️ Bajo stock</h5>
+                <h2>{{ productos_bajo_stock }}</h2>
+                <small>productos por reabastecer</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">💰 Valor inventario</h5>
+                <h2>${{ "%.2f"|format(valor_inventario) }}</h2>
+                <small>en compras</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">🚗 Salidas hoy</h5>
+                <h2>{{ salidas_hoy }}</h2>
+                <small>piezas usadas</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas de bajo stock -->
+{% if bajo_stock %}
+<div class="card mb-4">
+    <div class="card-header bg-warning">
+        <strong>⚠️ Alertas de stock mínimo</strong>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for producto in bajo_stock %}
+            <div class="col-md-4 mb-2">
+                <div class="alert alert-danger">
+                    🔴 <strong>{{ producto.nombre }}</strong><br>
+                    Stock actual: {{ producto.stock }} | Mínimo: {{ producto.stock_minimo }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Últimos movimientos y acciones rápidas -->
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <strong>📋 Últimos movimientos</strong>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in ultimos_movimientos %}
+                        <tr>
+                            <td>{{ mov.fecha.strftime('%d/%m %H:%M') }}</td>
+                            <td>{{ mov.producto.nombre if mov.producto else 'N/A' }}</td>
+                            <td>
+                                {% if mov.tipo == 'entrada' %}
+                                    <span class="badge bg-success">📥 Entrada</span>
+                                {% else %}
+                                    <span class="badge bg-danger">📤 Salida</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ mov.cantidad }}</td>
+                            <td>{{ mov.motivo }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No hay movimientos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <strong>⚡ Acciones rápidas</strong>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('registrar_compra') }}" class="btn btn-success w-100 mb-2">
+                    ➕ Registrar Compra
+                </a>
+                <a href="{{ url_for('registrar_salida') }}" class="btn btn-warning w-100 mb-2">
+                    🔧 Registrar Salida
+                </a>
+                <a href="{{ url_for('productos') }}" class="btn btn-info w-100 mb-2">
+                    🔍 Ver Productos
+                </a>
+                <a href="{{ url_for('reporte') }}" class="btn btn-secondary w-100">
+                    📄 Generar Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
