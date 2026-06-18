@@ -2,6 +2,7 @@ services:
   - type: web
     name: taller-el-olam
     env: python
+    rootDir: backend  # <-- Decirle a Render que el código está en backend/
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
     envVars:
