@@ -113,6 +113,14 @@ def create_app(config_class=Config):
     # ==========================
     # Inicialización BD
     # ==========================
+    
+    # Limpiar registro de modelos para evitar duplicados
+    with app.app_context():
+        # Importar modelos después de limpiar
+        from app.models import Usuario, Producto, Movimiento, Factura, DetalleFactura, Proveedor, Categoria
+        
+        # Crear tablas si no existen
+        db.create_all()
 
     with app.app_context():
 
