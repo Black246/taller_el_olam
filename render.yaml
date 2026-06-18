@@ -1,29 +1,10 @@
-# render.yaml - Raíz del repositorio
 services:
   - type: web
     name: taller-el-olam
     env: python
-    rootDir: backend
-    region: oregon  # o frankfurt, singapore, etc.
-    buildCommand: |
-      pip install -r ../requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
-    
-    # Ruta al código - Render buscará dentro de backend/
-    rootDir: backend
-    
-    # Comandos de construcción
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    
-    # Comando de inicio
-    startCommand: gunicorn wsgi:app
-    
-    # Variables de entorno
     envVars:
-      - key: FLASK_ENV
-        value: production
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
@@ -34,6 +15,11 @@ services:
         fromDatabase:
           name: taller-db
           property: connectionString
+
+  - type: postgresql
+    name: taller-db
+    databaseName: taller_el_olam
+    user: taller_user
     
     # Configuración de la aplicación
     healthCheckPath: /health
