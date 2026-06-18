@@ -13,7 +13,7 @@ Flask-Login==0.6.3
 # DATABASE
 # ============================================
 psycopg2-binary==2.9.12
-SQLAlchemy==2.0.23
+SQLAlchemy==2.0.38
 
 # ============================================
 # ENVIRONMENT & CONFIG
