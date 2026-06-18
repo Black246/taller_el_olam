@@ -1,82 +1,87 @@
 from datetime import datetime
-
 from app.extensions import db
 
+# Verificar si el modelo ya está registrado
+if 'Movimiento' in db.Model.registry._class_registry:
+    # Si ya existe, usar la clase existente
+    Movimiento = db.Model.registry._class_registry['Movimiento']
+else:
+    # Si no existe, definir la clase
 
-class Movimiento(db.Model):
-    __tablename__ = "movimientos"
-    __table_args__ = {'extend_existing': True}
+    class Movimiento(db.Model):
+        __tablename__ = "movimientos"
+        __table_args__ = {'extend_existing': True}
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True
-    )
+        id = db.Column(
+            db.Integer,
+            primary_key=True
+        )
 
-    producto_id = db.Column(
-        db.Integer,
-        db.ForeignKey("productos.id"),
-        nullable=False
-    )
+        producto_id = db.Column(
+            db.Integer,
+            db.ForeignKey("productos.id"),
+            nullable=False
+        )
 
-    usuario_id = db.Column(
-        db.Integer,
-        db.ForeignKey("usuarios.id"),
-        nullable=False
-    )
+        usuario_id = db.Column(
+            db.Integer,
+            db.ForeignKey("usuarios.id"),
+            nullable=False
+        )
 
-    proveedor_id = db.Column(
-        db.Integer,
-        db.ForeignKey("proveedores.id"),
-        nullable=True
-    )
+        proveedor_id = db.Column(
+            db.Integer,
+            db.ForeignKey("proveedores.id"),
+            nullable=True
+        )
 
-    tipo = db.Column(
-        db.String(10),
-        nullable=False
-    )
+        tipo = db.Column(
+            db.String(10),
+            nullable=False
+        )
 
-    cantidad = db.Column(
-        db.Integer,
-        nullable=False
-    )
+        cantidad = db.Column(
+            db.Integer,
+            nullable=False
+        )
 
-    motivo = db.Column(
-        db.String(200)
-    )
+        motivo = db.Column(
+            db.String(200)
+        )
 
-    orden_trabajo = db.Column(
-        db.String(50)
-    )
+        orden_trabajo = db.Column(
+            db.String(50)
+        )
 
-    costo_unitario = db.Column(
-        db.Float,
-        default=0
-    )
+        costo_unitario = db.Column(
+            db.Float,
+            default=0
+        )
 
-    nota = db.Column(
-        db.Text
-    )
+        nota = db.Column(
+            db.Text
+        )
 
-    fecha = db.Column(
-        db.DateTime,
-        default=datetime.utcnow
-    )
+        fecha = db.Column(
+            db.DateTime,
+            default=datetime.utcnow
+        )
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "producto_id": self.producto_id,
-            "usuario_id": self.usuario_id,
-            "proveedor_id": self.proveedor_id,
-            "tipo": self.tipo,
-            "cantidad": self.cantidad,
-            "motivo": self.motivo,
-            "orden_trabajo": self.orden_trabajo,
-            "costo_unitario": self.costo_unitario,
-            "nota": self.nota,
-            "fecha": self.fecha.isoformat()
-            if self.fecha else None
-        }
+        def to_dict(self):
+            return {
+                "id": self.id,
+                "producto_id": self.producto_id,
+                "usuario_id": self.usuario_id,
+                "proveedor_id": self.proveedor_id,
+                "tipo": self.tipo,
+                "cantidad": self.cantidad,
+                "motivo": self.motivo,
+                "orden_trabajo": self.orden_trabajo,
+                "costo_unitario": self.costo_unitario,
+                "nota": self.nota,
+                "fecha": self.fecha.isoformat()
+                if self.fecha else None
+            }
 
-    def __repr__(self):
-        return f"<Movimiento {self.tipo} - {self.cantidad}>"
+        def __repr__(self):
+            return f"<Movimiento {self.tipo} - {self.cantidad}>"
