@@ -59,7 +59,7 @@
             {% endif %}
         {% endwith %}
         
-        <form method="POST">
+        <form id="login-form" method="POST">
             <div class="mb-3">
                 <label class="form-label">Usuario</label>
                 <input type="text" name="usuario" class="form-control" required autofocus>
@@ -74,5 +74,57 @@
             <small class="text-muted">© 2025 Taller El Olam</small>
         </div>
     </div>
+
+    
+</div>
+</div>
+
+<script>
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const usuario = document.querySelector('[name="usuario"]').value;
+    const password = document.querySelector('[name="password"]').value;
+
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                usuario,
+                password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || 'Error de autenticación');
+            return;
+        }
+
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('refresh_token', data.refresh_token);
+        localStorage.setItem('usuario', JSON.stringify(data.user));
+
+        window.location.href = '/facturacion';
+
+    } catch (error) {
+        console.error(error);
+        alert('Error de conexión');
+    }
+});
+</script>
+
 </body>
 </html>
+
+</body>
+</html>
+
+<script>
+const TOKEN = "{{ access_token }}";
+</script>
+

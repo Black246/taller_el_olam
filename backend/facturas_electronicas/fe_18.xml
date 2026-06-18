@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sts="http://www.dian.gov.co/contratos/facturaelectronica/v1/Structures">
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent>
+        <sts:SoftwareProvider>
+          <sts:SoftwareID>TallerElOlam</sts:SoftwareID>
+          <sts:SoftwarePin>123456</sts:SoftwarePin>
+        </sts:SoftwareProvider>
+      </ext:ExtensionContent>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+  <cbc:ProfileID>DIAN 2.1</cbc:ProfileID>
+  <cbc:ID>FE-20260617-0018</cbc:ID>
+  <cbc:UUID>18-1781758495.984155</cbc:UUID>
+  <cbc:IssueDate>2026-06-18</cbc:IssueDate>
+  <cbc:IssueTime>04:54:55-05:00</cbc:IssueTime>
+  <cbc:InvoiceTypeCode>1</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>COP</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="31" schemeName="NIT">10656195505</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>MOTOTALLER EL OLAM</cbc:Name>
+      </cac:PartyName>
+      <cac:PostalAddress>
+        <cbc:CountrySubentity>Cesar</cbc:CountrySubentity>
+        <cbc:CityName>Valledupar</cbc:CityName>
+        <cbc:AddressLine>CR 26 13 52 BRR ENEAL</cbc:AddressLine>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>MOTOTALLER EL OLAM</cbc:RegistrationName>
+        <cbc:CompanyID>10656195505</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:ID>49</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:Contact>
+        <cbc:ElectronicMail>matecari10@hotmail.com</cbc:ElectronicMail>
+        <cbc:Telephone>3154541158</cbc:Telephone>
+      </cac:Contact>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="31">222222222222</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>CONSUMIDOR FINAL</cbc:Name>
+      </cac:PartyName>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:InvoiceLine>
+    <cac:InvoiceLine>
+      <cbc:ID>1</cbc:ID>
+      <cbc:InvoicedQuantity unitCode="u">1</cbc:InvoicedQuantity>
+      <cbc:LineExtensionAmount>22000.00</cbc:LineExtensionAmount>
+      <cac:Item>
+        <cbc:Description>Filtro de aceite</cbc:Description>
+      </cac:Item>
+      <cac:Price>
+        <cbc:PriceAmount>22000.00</cbc:PriceAmount>
+      </cac:Price>
+    </cac:InvoiceLine>
+  </cac:InvoiceLine>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount>22000.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount>22000.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount>26180.00</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount>26180.00</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:TaxTotal>
+    <cbc:TaxAmount>4180.00</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxAmount>4180.00</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cac:TaxScheme>
+          <cbc:ID>1</cbc:ID>
+        </cac:TaxScheme>
+        <cbc:Percent>19</cbc:Percent>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+</Invoice>

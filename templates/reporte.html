@@ -10,7 +10,7 @@
                 <strong>Fecha:</strong> {{ now.strftime('%d/%m/%Y %H:%M') }}
             </div>
             <div class="col-md-6 text-end">
-                <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir</button>
+                <button onclick="imprimirPDF()" class="btn btn-primary">🖨️ Imprimir PDF</button>
                 <button class="btn btn-success" onclick="exportarPDF()">📄 Exportar PDF</button>
             </div>
         </div>
@@ -94,8 +94,47 @@
 
 <script>
     function exportarPDF() {
-        alert('Para generar PDF, instala ReportLab:\npip install reportlab\n\nLuego implementa la exportación');
-        // Puedes implementar una llamada a /exportar_pdf
+        // Mostrar indicador de carga
+        const btn = document.querySelector('.btn-success');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Generando PDF...';
+        btn.disabled = true;
+        
+        // Abrir en nueva pestaña
+        const ventana = window.open('/exportar_pdf_inventario', '_blank');
+        
+        // Si el navegador bloquea la ventana emergente
+        if (!ventana || ventana.closed || typeof ventana.closed == 'undefined') {
+            alert('⚠️ Por favor, permite las ventanas emergentes para este sitio.');
+        }
+        
+        // Restaurar botón después de 2 segundos
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }
+    
+    function imprimirPDF() {
+    const btn = document.querySelector('.btn-primary');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Preparando PDF...';
+    btn.disabled = true;
+    
+    // Crear un enlace temporal para descargar
+    const link = document.createElement('a');
+    link.href = '/imprimir_pdf_inventario';
+    link.download = 'reporte_inventario.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Instruir al usuario para imprimir
+    setTimeout(() => {
+        alert('📄 El PDF se ha descargado. Ábrelo y usa Ctrl+P (Cmd+P en Mac) para imprimir.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
     }
 </script>
 {% endblock %}

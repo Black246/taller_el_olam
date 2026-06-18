@@ -179,8 +179,9 @@ async function buscarProducto(codigo) {
 }
 
 function crearNuevoProducto(codigo) {
+
     window.location.href =
-        `/producto/nuevo?codigo=${encodeURIComponent(codigo)}`;
+        `/nuevo_producto?codigo=${encodeURIComponent(codigo)}`;
 }
 
 /* Entrada manual */

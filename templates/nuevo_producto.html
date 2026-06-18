@@ -19,7 +19,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Código *</label>
-                    <input type="text" name="codigo" class="form-control" required>
+                    <input  id="codigo-input" type="text" name="codigo" class="form-control" value="{{ codigo }}" required>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Nombre *</label>
@@ -65,7 +65,7 @@
             </div>
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
-                <a href="{{ url_for('productos') }}" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ url_for('web.productos') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>

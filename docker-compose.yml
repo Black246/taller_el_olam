@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # ==================== BASE DE DATOS POSTGRESQL ====================
+  db:
+    image: postgres:15-alpine
+    container_name: taller_el_olam_db
+    restart: always
+    environment:
+      POSTGRES_USER: taller_user
+      POSTGRES_PASSWORD: taller_password
+      POSTGRES_DB: taller_el_olam
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taller_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taller_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== BACKEND (FLASK API) ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taller_el_olam_backend
+    restart: always
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://taller_user:taller_password@db:5432/taller_el_olam
+      - SECRET_KEY=produccion-secret-key-change-this
+      - JWT_SECRET_KEY=produccion-jwt-secret-key-change-this
+      - CORS_ORIGINS=http://localhost,http://localhost:80
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - backend_facturas:/app/facturas_pdf
+      - backend_xml:/app/facturas_electronicas
+    networks:
+      - taller_network
+    command: >
+      sh -c "flask db upgrade &&
+              gunicorn --bind 0.0.0.0:5000 --workers 4 --threads 2 run:app"
+
+  # ==================== FRONTEND (REACT + VITE) ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taller_el_olam_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - taller_network
+
+  # ==================== NGINX (PROXY REVERSO) ====================
+  nginx:
+    image: nginx:alpine
+    container_name: taller_el_olam_nginx
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - taller_network
+
+# ==================== VOLÚMENES ====================
+volumes:
+  postgres_data:
+    driver: local
+  backend_facturas:
+    driver: local
+  backend_xml:
+    driver: local
+
+# ==================== REDES ====================
+networks:
+  taller_network:
+    driver: bridge

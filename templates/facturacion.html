@@ -85,20 +85,45 @@
                 🧾 GENERAR FACTURA Y COBRAR
             </button>
         </div>
+
+        <div class="mt-2">
+    <a href="{{ url_for('web.historial_facturas') }}?token={{ session.get('access_token') }}" 
+        class="btn btn-info w-100">
+        📋 VER HISTORIAL DE FACTURAS
+    </a>
+</div>
+
     </div>
 </div>
 
 <script>
+    // ============ CONFIGURACIÓN INICIAL ============
+    const ACCESS_TOKEN = localStorage.getItem("access_token");
+    console.log("🔑 TOKEN:", ACCESS_TOKEN ? ACCESS_TOKEN.substring(0, 30) + "..." : "NO TOKEN");
+    console.log("📏 Longitud token:", ACCESS_TOKEN ? ACCESS_TOKEN.length : 0);
+
+    if (!ACCESS_TOKEN) {
+        console.warn("⚠️ No hay token de autenticación");
+        alert("⚠️ No has iniciado sesión. Por favor, inicia sesión para continuar.");
+    }
+
     let carrito = [];
     let productosData = {{ productos | tojson }};
     
+    // ============ ELEMENTOS DOM ============
     const buscarInput = document.getElementById('buscar-producto');
     const buscarBtn = document.getElementById('btn-buscar');
     const resultadoBusqueda = document.getElementById('resultado-busqueda');
+    const btnGenerarFactura = document.getElementById('btn-generar-factura');
     
-    // Buscar producto
-    async function buscarProducto(termino) {
-        if (!termino || termino.length < 2) return;
+    // ============ FUNCIONES DE BÚSQUEDA ============
+    function buscarProducto(termino) {
+        if (!termino || termino.length < 2) {
+            resultadoBusqueda.style.display = 'none';
+            return;
+        }
+        
+        console.log("🔍 Buscando:", termino);
         
         // Buscar en los productos locales
         const producto = productosData.find(p => 
@@ -110,7 +135,11 @@
             mostrarResultado(producto);
         } else {
             resultadoBusqueda.style.display = 'block';
-            resultadoBusqueda.innerHTML = '<div class="alert alert-warning">Producto no encontrado</div>';
+            resultadoBusqueda.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Producto no encontrado
+                </div>
+            `;
         }
     }
     
@@ -121,14 +150,14 @@
                 <div class="row align-items-center">
                     <div class="col-6">
                         <strong>${producto.nombre}</strong><br>
-                        Código: ${producto.codigo}<br>
-                        Stock: ${producto.stock} | Precio: $${producto.precio_venta}
+                        <small>Código: ${producto.codigo}</small><br>
+                        <small>Stock: ${producto.stock} | Precio: $${producto.precio_venta.toLocaleString()}</small>
                     </div>
                     <div class="col-4">
                         <input type="number" id="cantidad-${producto.id}" class="form-control" value="1" min="1" max="${producto.stock}">
                     </div>
                     <div class="col-2">
-                        <button class="btn btn-primary" onclick="agregarAlCarrito(${producto.id}, '${producto.nombre}', ${producto.precio_venta}, ${producto.stock})">
+                        <button class="btn btn-primary btn-sm" onclick="agregarAlCarrito(${producto.id}, '${producto.nombre}', ${producto.precio_venta}, ${producto.stock})">
                             ➕ Agregar
                         </button>
                     </div>
@@ -137,19 +166,30 @@
         `;
     }
     
+    // ============ FUNCIONES DEL CARRITO ============
     function agregarAlCarrito(id, nombre, precio, stockMax) {
         const cantidadInput = document.getElementById(`cantidad-${id}`);
-        const cantidad = parseInt(cantidadInput.value);
+        if (!cantidadInput) {
+            console.error("❌ No se encontró el input de cantidad");
+            return;
+        }
+        
+        const cantidad = parseInt(cantidadInput.value) || 1;
         
         if (cantidad > stockMax) {
-            alert(`Stock insuficiente. Solo hay ${stockMax} unidades disponibles.`);
+            alert(`❌ Stock insuficiente. Solo hay ${stockMax} unidades disponibles.`);
+            return;
+        }
+        
+        if (cantidad <= 0) {
+            alert('❌ La cantidad debe ser mayor a 0');
             return;
         }
         
         const itemExistente = carrito.find(item => item.id === id);
         if (itemExistente) {
             if (itemExistente.cantidad + cantidad > stockMax) {
-                alert(`Stock insuficiente. Solo hay ${stockMax} disponibles.`);
+                alert(`❌ Stock insuficiente. Solo hay ${stockMax} disponibles.`);
                 return;
             }
             itemExistente.cantidad += cantidad;
@@ -162,6 +202,7 @@
             });
         }
         
+        console.log("✅ Producto agregado:", nombre, cantidad);
         actualizarCarrito();
         resultadoBusqueda.style.display = 'none';
         buscarInput.value = '';
@@ -173,11 +214,14 @@
         
         if (carrito.length === 0) {
             carritoLista.innerHTML = '<p class="text-muted text-center">No hay productos agregados</p>';
+            document.getElementById('subtotal').innerHTML = '$0';
+            document.getElementById('iva').innerHTML = '$0';
+            document.getElementById('total').innerHTML = '$0';
             return;
         }
         
         let subtotal = 0;
-        let html = '<table class="table table-sm">';
+        let html = '<div class="table-responsive"><table class="table table-sm">';
         html += '<thead><tr><th>Producto</th><th>Cant</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead><tbody>';
         
         carrito.forEach((item, index) => {
@@ -185,16 +229,20 @@
             subtotal += itemSubtotal;
             html += `
                 <tr>
-                    <td>${item.nombre}</td>
+                    <td><small>${item.nombre}</small></td>
                     <td>${item.cantidad}</td>
-                    <td>$${item.precio}</td>
-                    <td>$${itemSubtotal}</td>
-                    <td><button class="btn btn-sm btn-danger" onclick="eliminarDelCarrito(${index})">🗑️</button></td>
+                    <td>$${item.precio.toLocaleString()}</td>
+                    <td>$${itemSubtotal.toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarDelCarrito(${index})">
+                            🗑️
+                        </button>
+                    </td>
                 </tr>
             `;
         });
         
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         carritoLista.innerHTML = html;
         
         const iva = subtotal * 0.19;
@@ -203,37 +251,115 @@
         document.getElementById('subtotal').innerHTML = `$${subtotal.toLocaleString()}`;
         document.getElementById('iva').innerHTML = `$${iva.toLocaleString()}`;
         document.getElementById('total').innerHTML = `$${total.toLocaleString()}`;
+        
+        console.log("🛒 Carrito actualizado:", carrito.length, "items, Total:", total);
     }
     
     function eliminarDelCarrito(index) {
         carrito.splice(index, 1);
         actualizarCarrito();
     }
+
+    // ============ FUNCIÓN PARA ABRIR PDF ============
+    async function abrirPDF(pdfUrl) {
+        try {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                alert("❌ No hay token de autenticación. Por favor, inicia sesión nuevamente.");
+                return false;
+            }
+
+            console.log("📄 Solicitando PDF:", pdfUrl);
+            
+            const response = await fetch(pdfUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ Error al obtener PDF:", response.status, errorText);
+                
+                if (response.status === 401) {
+                    alert("❌ Sesión expirada. Por favor, inicia sesión nuevamente.");
+                    localStorage.removeItem("access_token");
+                    window.location.href = "/login";
+                    return false;
+                }
+                
+                alert(`❌ Error al abrir PDF: ${response.status} ${response.statusText}`);
+                return false;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            // Abrir en nueva ventana
+            const nuevaVentana = window.open(url, '_blank');
+            if (!nuevaVentana) {
+                alert("⚠️ El navegador bloqueó la ventana emergente. Permite popups para este sitio.");
+                return false;
+            }
+            
+            // Liberar memoria después de 10 segundos
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+            
+            console.log("✅ PDF abierto correctamente");
+            return true;
+            
+        } catch (error) {
+            console.error("❌ Error al abrir PDF:", error);
+            alert('❌ Error al abrir el PDF: ' + error.message);
+            return false;
+        }
+    }
     
+    // ============ FUNCIÓN PRINCIPAL: GENERAR FACTURA ============
     async function generarFactura() {
+        // Validar carrito
         if (carrito.length === 0) {
-            alert('Agrega productos al carrito primero');
+            alert('❌ Agrega productos al carrito primero');
             return;
         }
         
-        const clienteNombre = document.getElementById('cliente-nombre').value || 'CONSUMIDOR FINAL';
-        const clienteDocumento = document.getElementById('cliente-documento').value;
+        // Validar token
+        const accessToken = localStorage.getItem("access_token");
+        if (!accessToken) {
+            alert("❌ No hay token de autenticación. Por favor, inicia sesión.");
+            window.location.href = "/login";
+            return;
+        }
+        
+        // Obtener datos del cliente
+        const clienteNombre = document.getElementById('cliente-nombre').value.trim() || 'CONSUMIDOR FINAL';
+        const clienteDocumento = document.getElementById('cliente-documento').value.trim();
         const metodoPago = document.getElementById('metodo-pago').value;
         
+        // Preparar items
         const items = carrito.map(item => ({
             producto_id: item.id,
             cantidad: item.cantidad,
             precio: item.precio
         }));
         
+        console.log("📦 Items a facturar:", items);
+        console.log("👤 Cliente:", clienteNombre);
+        console.log("💳 Método de pago:", metodoPago);
+        
+        // Deshabilitar botón
         const btn = document.getElementById('btn-generar-factura');
         btn.disabled = true;
-        btn.innerHTML = 'Procesando...';
+        btn.innerHTML = '⏳ Procesando...';
         
         try {
-            const response = await fetch('/crear_factura', {
+            // Enviar petición
+            const response = await fetch('/api/facturas/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
                 body: JSON.stringify({
                     cliente_nombre: clienteNombre,
                     cliente_documento: clienteDocumento,
@@ -242,35 +368,108 @@
                 })
             });
             
+            // Leer respuesta
             const data = await response.json();
+            console.log("📨 Respuesta del servidor:", data);
             
-            if (data.success) {
-                alert(`Factura ${data.folio} generada exitosamente. Total: $${data.total.toLocaleString()}`);
+            // Manejar errores
+            if (!response.ok) {
+                if (response.status === 401) {
+                    alert("❌ Sesión expirada. Por favor, inicia sesión nuevamente.");
+                    localStorage.removeItem("access_token");
+                    window.location.href = "/login";
+                    return;
+                }
                 
-                // Descargar PDF
-                window.open(data.pdf_url, '_blank');
+                const errorMsg = data.error || data.message || `Error ${response.status}`;
+                throw new Error(errorMsg);
+            }
+            
+            // Éxito
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                alert(`✅ ¡Factura ${data.folio} generada exitosamente!\nTotal: $${data.total.toLocaleString()}`);
+                
+                // Abrir PDF
+                if (data.pdf_url) {
+                    const pdfAbierto = await abrirPDF(data.pdf_url);
+                    if (!pdfAbierto) {
+                        console.warn("⚠️ No se pudo abrir el PDF automáticamente");
+                    }
+                } else {
+                    console.warn("⚠️ No se recibió URL del PDF");
+                }
                 
                 // Limpiar carrito
                 carrito = [];
                 actualizarCarrito();
+                
+                // Limpiar datos del cliente
                 document.getElementById('cliente-nombre').value = '';
                 document.getElementById('cliente-documento').value = '';
+                
+                // Enfocar búsqueda
+                buscarInput.focus();
+                
             } else {
-                alert('Error: ' + (data.error || 'No se pudo generar la factura'));
+                throw new Error(data.error || 'No se pudo generar la factura');
             }
+            
         } catch (error) {
-            alert('Error de conexión: ' + error);
+            console.error("❌ Error al generar factura:", error);
+            alert('❌ Error: ' + error.message);
         } finally {
+            // Restaurar botón
             btn.disabled = false;
             btn.innerHTML = '🧾 GENERAR FACTURA Y COBRAR';
         }
     }
     
-    buscarBtn.addEventListener('click', () => buscarProducto(buscarInput.value));
-    buscarInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') buscarProducto(buscarInput.value);
+    // ============ EVENT LISTENERS ============
+    
+    // Botón buscar
+    buscarBtn.addEventListener('click', () => {
+        const termino = buscarInput.value.trim();
+        if (termino) {
+            buscarProducto(termino);
+        } else {
+            resultadoBusqueda.style.display = 'none';
+        }
     });
     
-    document.getElementById('btn-generar-factura').addEventListener('click', generarFactura);
+    // Enter en búsqueda
+    buscarInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const termino = buscarInput.value.trim();
+            if (termino) {
+                buscarProducto(termino);
+            }
+        }
+    });
+
+    // Búsqueda automática con debounce
+    let timeoutId = null;
+    buscarInput.addEventListener('input', () => {
+        clearTimeout(timeoutId);
+        const valor = buscarInput.value.trim();
+        
+        if (valor.length >= 2) {
+            timeoutId = setTimeout(() => buscarProducto(valor), 500);
+        } else {
+            resultadoBusqueda.style.display = 'none';
+        }
+    });
+    
+    // Botón generar factura
+    btnGenerarFactura.addEventListener('click', generarFactura);
+    
+    // ============ INICIALIZACIÓN ============
+    console.log("✅ POS inicializado correctamente");
+    console.log("📦 Productos disponibles:", productosData.length);
+    console.log("🛒 Carrito vacío");
+    
+    // Enfocar búsqueda al cargar
+    buscarInput.focus();
 </script>
 {% endblock %}

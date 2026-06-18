@@ -23,16 +23,16 @@
                     <small>Bienvenido, <strong>{{ current_user.nombre }}</strong></small>
                 </div>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="{{ url_for('dashboard') }}">📊 Dashboard</a>
-                    <a class="nav-link" href="{{ url_for('productos') }}">📦 Productos</a>
-                    <a class="nav-link" href="{{ url_for('registrar_compra') }}">📥 Registrar Compra</a>
-                    <a class="nav-link" href="{{ url_for('registrar_salida') }}">🔧 Registrar Salida</a>
-                    <a class="nav-link" href="{{ url_for('escanear') }}">📷 Escanear Código</a>
-                    <a class="nav-link" href="{{ url_for('facturacion') }}">🧾 Facturación POS</a>
-                    <a class="nav-link" href="{{ url_for('historial_facturas') }}">📜 Historial Facturas</a>
-                    <a class="nav-link" href="{{ url_for('reporte') }}">📄 Reportes</a>
+                    <a class="nav-link" href="{{ url_for('web.dashboard') }}">📊 Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('web.productos') }}">📦 Productos</a>
+                    <a class="nav-link" href="{{ url_for('web.compra') }}">📥 Registrar Compra</a>
+                    <a class="nav-link" href="{{ url_for('web.salida') }}">🔧 Registrar Salida</a>
+                    <a class="nav-link" href="{{ url_for('web.escanear') }}">📷 Escanear Código</a>
+                    <a class="nav-link" href="{{ url_for('web.facturacion') }}">🧾 Facturación POS</a>
+                    <a class="nav-link" href="{{ url_for('web.historial_facturas') }}">📜 Historial Facturas</a>
+                    <a class="nav-link" href="{{ url_for('web.reporte') }}">📄 Reportes</a>
                     <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
-                    <a class="nav-link text-danger" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a>
+                    <a class="nav-link text-danger" href="{{ url_for('web.login') }}">🚪 Cerrar Sesión</a>
                 </nav>
             </div>
             
@@ -54,5 +54,8 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.ACCESS_TOKEN = "{{ access_token or '' }}";
+    </script>
 </body>
 </html>
