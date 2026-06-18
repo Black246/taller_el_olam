@@ -45,6 +45,7 @@ def create_app(config_class=Config):
         origins=app.config["CORS_ORIGINS"]
     )
 
+
     jwt.init_app(app)
 
     # ==========================
@@ -114,20 +115,14 @@ def create_app(config_class=Config):
     # Inicialización BD
     # ==========================
 
-    with app.app_context():
-
-        try:
-
-            # Temporal mientras migramos
-            db.create_all()
-
-            crear_datos_iniciales()
-
-        except Exception as e:
-
-            app.logger.error(
-                f"Error inicializando base de datos: {e}"
-            )
+    # ❌ COMENTA o ELIMINA este bloque:
+    # with app.app_context():
+    #     try:
+    #         # Temporal mientras migramos
+    #         db.create_all()
+    #         crear_datos_iniciales()
+    #     except Exception as e:
+    #         app.logger.error(f"Error inicializando base de datos: {e}")
 
     return app
 
