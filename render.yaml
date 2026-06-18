@@ -3,7 +3,11 @@ services:
   - type: web
     name: taller-el-olam
     env: python
+    rootDir: backend
     region: oregon  # o frankfurt, singapore, etc.
+    buildCommand: |
+      pip install -r ../requirements.txt
+    startCommand: gunicorn wsgi:app
     
     # Ruta al código - Render buscará dentro de backend/
     rootDir: backend
