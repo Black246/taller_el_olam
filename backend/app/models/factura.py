@@ -5,6 +5,7 @@ from app.extensions import db
 
 class Factura(db.Model):
     __tablename__ = "facturas"
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(
         db.Integer,

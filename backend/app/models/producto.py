@@ -6,6 +6,7 @@ from app.extensions import db
 
 class Producto(db.Model):
     __tablename__ = "productos"
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(
         db.Integer,

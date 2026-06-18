@@ -5,6 +5,7 @@ from app.extensions import db
 
 class Proveedor(db.Model):
     __tablename__ = 'proveedores'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(
         db.Integer,
