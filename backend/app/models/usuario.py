@@ -4,16 +4,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.extensions import db
 
-# Verificar si el modelo ya está registrado
-if 'Factura' in db.Model.registry._class_registry:
-    # Si ya existe, usar la clase existente
-    Factura = db.Model.registry._class_registry['Factura']
-else:
-    # Si no existe, definir la clase
 
-    class Usuario(UserMixin, db.Model):
+class Usuario(UserMixin, db.Model):
         __tablename__ = "usuarios"
-        __table_args__ = {'extend_existing': True}
 
         id = db.Column(db.Integer, primary_key=True)
 

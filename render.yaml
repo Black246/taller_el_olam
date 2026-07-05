@@ -1,38 +1,59 @@
 services:
   - type: web
-    name: taller-el-olam
+    name: taller-el-olam-backend
     env: python
-    rootDir: backend  # <-- Decirle a Render que el código está en backend/
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app
+    buildCommand: |
+      cd backend
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      gunicorn wsgi:app --bind 0.0.0.0:10000
     envVars:
-      - key: SECRET_KEY
-        generateValue: true
-      - key: JWT_SECRET_KEY
-        generateValue: true
       - key: PYTHON_VERSION
-        value: 3.13.5
+        value: 3.11.13
       - key: DATABASE_URL
         fromDatabase:
           name: taller-db
           property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+      - key: EMPRESA_NIT
+        value: 1065619550
+      - key: EMPRESA_DV
+        value: 5
+      - key: EMPRESA_RAZON_SOCIAL
+        value: MOTOTALLER EL OLAM
+      - key: EMPRESA_NOMBRE_COMERCIAL
+        value: MOTOTALLER EL OLAM
+      - key: EMPRESA_DIRECCION
+        value: CR 26 13 52 BRR ENEAL
+      - key: EMPRESA_CIUDAD
+        value: Valledupar
+      - key: EMPRESA_DEPARTAMENTO
+        value: Cesar
+      - key: EMPRESA_TELEFONO
+        value: 3154541158
+      - key: EMPRESA_EMAIL
+        value: matecari10@hotmail.com
+      - key: DIAN_SOFTWARE_ID
+        value: TallerElOlam
+      - key: DIAN_SOFTWARE_PIN
+        value: 123456
+      - key: DIAN_TESTING_MODE
+        value: true
+      - key: IVA_PORCENTAJE
+        value: 19
+      - key: PDF_FOLDER_PATH
+        value: facturas_pdf
+    healthCheckPath: /api/health
 
   - type: postgresql
     name: taller-db
     databaseName: taller_el_olam
     user: taller_user
-    
-    # Configuración de la aplicación
-    healthCheckPath: /health
-    autoDeploy: true
-    numReplicas: 1
-    
-    # Plan de recursos
-    plan: starter  # o professional si necesitas más
-
-  - type: postgresql
-    name: taller-db
-    region: oregon
     plan: starter
-    databaseName: taller_el_olam
-    user: taller_user
+    region: oregon

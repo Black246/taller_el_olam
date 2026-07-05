@@ -1,16 +1,9 @@
 from datetime import datetime
 from app.extensions import db
 
-# Verificar si el modelo ya está registrado
-if 'Movimiento' in db.Model.registry._class_registry:
-    # Si ya existe, usar la clase existente
-    Movimiento = db.Model.registry._class_registry['Movimiento']
-else:
-    # Si no existe, definir la clase
 
-    class Movimiento(db.Model):
+class Movimiento(db.Model):
         __tablename__ = "movimientos"
-        __table_args__ = {'extend_existing': True}
 
         id = db.Column(
             db.Integer,

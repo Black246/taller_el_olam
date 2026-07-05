@@ -94,18 +94,19 @@
 
 <script>
     function exportarPDF() {
-        // Mostrar indicador de carga
         const btn = document.querySelector('.btn-success');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Generando PDF...';
         btn.disabled = true;
         
-        // Abrir en nueva pestaña
-        const ventana = window.open('/exportar_pdf_inventario', '_blank');
+        // ✅ Abrir en nueva pestaña usando la ruta con url_for
+        const ventana = window.open("{{ url_for('web.exportar_pdf_inventario') }}", '_blank');
         
-        // Si el navegador bloquea la ventana emergente
         if (!ventana || ventana.closed || typeof ventana.closed == 'undefined') {
             alert('⚠️ Por favor, permite las ventanas emergentes para este sitio.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
         }
         
         // Restaurar botón después de 2 segundos

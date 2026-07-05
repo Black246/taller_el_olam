@@ -2,16 +2,9 @@ from datetime import datetime
 
 from app.extensions import db
 
-# Verificar si el modelo ya está registrado
-if 'Factura' in db.Model.registry._class_registry:
-    # Si ya existe, usar la clase existente
-    Factura = db.Model.registry._class_registry['Factura']
-else:
-    # Si no existe, definir la clase
 
-    class Factura(db.Model):
+class Factura(db.Model):
         __tablename__ = "facturas"
-        __table_args__ = {'extend_existing': True}
 
         id = db.Column(
             db.Integer,

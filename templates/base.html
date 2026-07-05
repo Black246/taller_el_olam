@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        window.ACCESS_TOKEN = "{{ access_token or '' }}";
+    </script>
+    <script>
+        console.log("TOKEN DESDE BASE:", window.ACCESS_TOKEN);
+    </script>
     <title>Taller El Olam - Inventario</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
     <div class="container-fluid p-0">
@@ -23,17 +30,30 @@
                     <small>Bienvenido, <strong>{{ current_user.nombre }}</strong></small>
                 </div>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="{{ url_for('web.dashboard') }}">📊 Dashboard</a>
-                    <a class="nav-link" href="{{ url_for('web.productos') }}">📦 Productos</a>
-                    <a class="nav-link" href="{{ url_for('web.compra') }}">📥 Registrar Compra</a>
-                    <a class="nav-link" href="{{ url_for('web.salida') }}">🔧 Registrar Salida</a>
-                    <a class="nav-link" href="{{ url_for('web.escanear') }}">📷 Escanear Código</a>
-                    <a class="nav-link" href="{{ url_for('web.facturacion') }}">🧾 Facturación POS</a>
-                    <a class="nav-link" href="{{ url_for('web.historial_facturas') }}">📜 Historial Facturas</a>
-                    <a class="nav-link" href="{{ url_for('web.reporte') }}">📄 Reportes</a>
-                    <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
-                    <a class="nav-link text-danger" href="{{ url_for('web.login') }}">🚪 Cerrar Sesión</a>
-                </nav>
+                <a class="nav-link" href="{{ url_for('web.home') }}">🏠 Inicio</a>
+                <a class="nav-link" href="{{ url_for('web.productos') }}">📦 Productos</a>
+                <a class="nav-link" href="{{ url_for('web.compra') }}">📥 Registrar Compra</a>
+                <a class="nav-link" href="{{ url_for('web.salida') }}">🔧 Registrar Salida</a>
+                <a class="nav-link" href="{{ url_for('web.escanear') }}">📷 Escanear Código</a>
+                <a class="nav-link" href="{{ url_for('web.facturacion') }}">🧾 Facturación POS</a>
+                <a class="nav-link" href="{{ url_for('web.historial_facturas') }}">📜 Historial Facturas</a>
+                <a class="nav-link" href="{{ url_for('web.reporte') }}">📄 Reporte de Inventario</a>
+                
+                <!-- Dropdown de Reportes -->
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        📊 Reportes
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('web.dashboard_financiero') }}">📈 Dashboard Financiero</a></li>
+                        <!-- Agregar más reportes aquí si es necesario -->
+                    </ul>
+                </div>
+                
+                <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                
+                <a class="nav-link text-danger" href="{{ url_for('web.logout') }}">🚪 Cerrar Sesión</a>
+            </nav>
             </div>
             
             <!-- Content -->
@@ -54,8 +74,5 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        window.ACCESS_TOKEN = "{{ access_token or '' }}";
-    </script>
 </body>
 </html>

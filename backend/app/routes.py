@@ -3,13 +3,16 @@ import os
 from flask import (
     Blueprint,
     current_app,
+    json,
     render_template,
     request,
     redirect,
     send_file,
     session,
     url_for,
-    flash
+    flash,
+    jsonify,
+    
 )
 from flask_jwt_extended import jwt_required
 
@@ -19,9 +22,10 @@ from datetime import datetime, date
 from app.models.producto import Producto
 from app.models.movimiento import Movimiento
 from app.services.auth_service import AuthService
-from flask import jsonify, session, redirect, Blueprint, render_template, redirect, url_for
+from app.services.dashboard_service import DashboardService
 from app.services.facturacion_service import FacturacionService
 from app.generators.pdf_generator import generar_pdf_inventario
+from app.services.financial_service import FinancialService
 
 web_bp = Blueprint(
     "web",
@@ -65,9 +69,8 @@ def login():
             print(session.get("access_token"))
 
             return redirect(
-                url_for("web.dashboard")
+                url_for("web.home")
             )
-
         except Exception as e:
             flash(str(e))
 
@@ -79,9 +82,9 @@ def logout():
     session.clear()
     return redirect(url_for("web.login"))
 
-@web_bp.route("/dashboard")
-def dashboard():
-
+@web_bp.route("/home")
+def home():
+    """Página principal con resumen de inventario"""
     productos = Producto.query.all()
 
     total_productos = len(productos)
@@ -198,62 +201,54 @@ def escanear():
 
 @web_bp.route("/reporte")
 def reporte():
-
-    productos = Producto.query.order_by(
-        Producto.nombre
-    ).all()
-
-    total_valor = sum(
-        p.stock * p.precio_compra
-        for p in productos
-    )
-
-    productos_bajo_stock = [
-        p for p in productos
-        if p.stock <= p.stock_minimo
-    ]
-
-    return render_template(
-        "reporte.html",
-        now=datetime.now(),
-        productos=productos,
-        total_valor=total_valor,
-        productos_bajo_stock=productos_bajo_stock
-    )
-    
-@web_bp.route("/exportar_pdf_inventario")
-def exportar_pdf_inventario():
-    """Exporta el reporte de inventario a PDF"""
+    """Reporte de inventario"""
     try:
-        from app.models.producto import Producto
-        
-        # Obtener datos
         productos = Producto.query.order_by(Producto.nombre).all()
         total_valor = sum(p.stock * p.precio_compra for p in productos)
         productos_bajo_stock = [p for p in productos if p.stock <= p.stock_minimo]
         
-        # Generar PDF
+        return render_template(
+            'reporte.html',
+            now=datetime.now(),
+            productos=productos,
+            total_valor=total_valor,
+            productos_bajo_stock=productos_bajo_stock
+        )
+        
+    except Exception as e:
+        current_app.logger.error(f"❌ Error en reporte: {str(e)}")
+        return render_template('error.html', error="Error al cargar el reporte"), 500
+
+# ==========================
+# EXPORTAR PDF INVENTARIO
+# ==========================
+
+@web_bp.route("/exportar_pdf_inventario")
+def exportar_pdf_inventario():
+    """Exporta reporte de inventario a PDF"""
+    try:
+        productos = Producto.query.order_by(Producto.nombre).all()
+        total_valor = sum(p.stock * p.precio_compra for p in productos)
+        productos_bajo_stock = [p for p in productos if p.stock <= p.stock_minimo]
+        
         pdf_path = generar_pdf_inventario(
             productos=productos,
             total_valor=total_valor,
             productos_bajo_stock=productos_bajo_stock
         )
         
-        # Enviar el PDF para visualizar en el navegador
         return send_file(
             pdf_path,
-            mimetype='application/pdf',
-            as_attachment=False  # Abre en el navegador
+            as_attachment=False,  # ✅ Abre en navegador
+            download_name=f"reporte_inventario_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+            mimetype='application/pdf'
         )
         
     except Exception as e:
-        current_app.logger.error(f"❌ Error al generar PDF: {str(e)}")
+        current_app.logger.error(f"❌ Error al exportar PDF inventario: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Error al generar PDF',
-            'message': str(e)
-        }), 500
+        return jsonify({'error': 'Error al generar PDF'}), 500
         
 @web_bp.route("/imprimir_pdf_inventario")
 def imprimir_pdf_inventario():
@@ -313,18 +308,43 @@ def buscar_por_codigo():
         "encontrado": False
     })
 
-@web_bp.route('/historial-facturas')
+# ==========================
+# HISTORIAL DE FACTURAS
+# ==========================
+
+@web_bp.route("/historial")
 def historial_facturas():
-    """Vista del historial de facturas"""
+    """Historial de facturas con filtros avanzados"""
     try:
-        facturas = FacturacionService.obtener_facturas()
-        print(f"📊 Facturas encontradas: {len(facturas)}")
-        return render_template('historial_facturas.html', facturas=facturas)
+        # Obtener parámetros de filtro
+        filtros = {
+            'fecha_inicio': request.args.get('fecha_inicio'),
+            'fecha_fin': request.args.get('fecha_fin'),
+            'cliente': request.args.get('cliente'),
+            'metodo_pago': request.args.get('metodo_pago'),
+            'estado': request.args.get('estado')
+        }
+        
+        # Convertir fechas si existen
+        if filtros['fecha_inicio']:
+            filtros['fecha_inicio'] = datetime.strptime(filtros['fecha_inicio'], '%Y-%m-%d')
+        if filtros['fecha_fin']:
+            filtros['fecha_fin'] = datetime.strptime(filtros['fecha_fin'] + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+        
+        # Obtener facturas con filtros
+        facturas = FinancialService.get_historial_facturas(filtros)
+        
+        return render_template(
+            'historial_facturas.html',
+            facturas=facturas,
+            filtros=filtros
+        )
+        
     except Exception as e:
-        print(f"❌ Error en historial: {str(e)}")
+        current_app.logger.error(f"❌ Error en historial: {str(e)}")
         import traceback
         traceback.print_exc()
-        return render_template('historial_facturas.html', facturas=[], error=str(e))
+        return render_template('error.html', error="Error al cargar el historial"), 500
 
 @web_bp.route('/factura/<int:id>/pdf')
 @jwt_required(optional=True)  # Permitir acceso sin token para vista previa
@@ -495,3 +515,103 @@ def eliminar_producto(id):
     return redirect(
         url_for("web.productos")
     )
+    
+@web_bp.route("/dashboard_financiero")
+def dashboard_financiero():
+    """Dashboard financiero con gráficos y resúmenes"""
+    try:
+        # Obtener filtros de fecha
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        
+        # Convertir fechas si existen
+        fecha_inicio_dt = None
+        fecha_fin_dt = None
+        if fecha_inicio:
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+        if fecha_fin:
+            fecha_fin_dt = datetime.strptime(fecha_fin + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+        
+        # Obtener datos del dashboard
+        resumen = DashboardService.get_resumen_general(fecha_inicio_dt, fecha_fin_dt)
+        ventas_diarias = DashboardService.get_ventas_diarias(30)
+        ventas_mensuales = DashboardService.get_ventas_mensuales()
+        
+        # Preparar datos para gráficos
+        fechas = [v.fecha.strftime('%d/%m') for v in ventas_diarias if v.fecha]
+        totales = [float(v.total) for v in ventas_diarias if v.total]
+        
+        meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        ventas_mes = [0] * 12
+        for v in ventas_mensuales:
+            if v.mes and v.total:
+                ventas_mes[int(v.mes) - 1] = float(v.total)
+        
+        # Datos para gráfico de métodos de pago
+        metodos = [{'label': v[0], 'value': float(v[2])} for v in resumen['ventas_metodo'] if v[0]]
+        
+        # Datos para gráfico de días de la semana
+        dias_semana = []
+        for v in resumen['ventas_dia_semana']:
+            if v.dia_semana is not None:
+                dias_semana.append({
+                    'dia_semana': int(v.dia_semana),
+                    'total': float(v.total) if v.total else 0
+                })
+        
+        return render_template(
+            'dashboard_financiero.html',
+            now=datetime.now(),
+            resumen=resumen,
+            fechas=json.dumps(fechas),
+            totales=json.dumps(totales),
+            meses=json.dumps(meses),
+            ventas_mes=json.dumps(ventas_mes),
+            metodos=json.dumps(metodos),
+            dias_semana=json.dumps(dias_semana)
+        )
+        
+    except Exception as e:
+        current_app.logger.error(f"❌ Error en dashboard: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return render_template('error.html', error="Error al cargar el dashboard"), 500
+    
+@web_bp.route("/exportar_excel")
+def exportar_excel():
+    """Exporta facturas a Excel con filtros"""
+    try:
+        # Obtener parámetros de filtro
+        filtros = {
+            'fecha_inicio': request.args.get('fecha_inicio'),
+            'fecha_fin': request.args.get('fecha_fin'),
+            'cliente': request.args.get('cliente'),
+            'metodo_pago': request.args.get('metodo_pago'),
+            'estado': request.args.get('estado')
+        }
+        
+        # Convertir fechas si existen
+        if filtros['fecha_inicio']:
+            filtros['fecha_inicio'] = datetime.strptime(filtros['fecha_inicio'], '%Y-%m-%d')
+        if filtros['fecha_fin']:
+            filtros['fecha_fin'] = datetime.strptime(filtros['fecha_fin'] + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+        
+        # Obtener facturas con filtros
+        facturas = FinancialService.get_historial_facturas(filtros)
+        
+        # Generar Excel
+        excel_file = FinancialService.exportar_excel(facturas)
+        
+        return send_file(
+            excel_file,
+            as_attachment=True,
+            download_name=f"facturas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+    except Exception as e:
+        current_app.logger.error(f"❌ Error al exportar Excel: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Error al exportar Excel'}), 500

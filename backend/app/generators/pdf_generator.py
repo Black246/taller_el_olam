@@ -8,6 +8,10 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from io import BytesIO
 
 def generar_pdf_factura(factura, detalles, config=None):
     """Genera PDF profesional de factura"""
@@ -397,3 +401,160 @@ def generar_pdf_inventario(productos, total_valor, productos_bajo_stock, config=
     
     current_app.logger.info(f"✅ PDF de inventario generado: {pdf_path}")
     return pdf_path
+
+def generar_pdf_historial(facturas, filtros=None):
+    """
+    Genera PDF con el historial de facturas
+    
+    Args:
+        facturas: Lista de objetos Factura
+        filtros: Diccionario con filtros aplicados
+    
+    Returns:
+        BytesIO: Buffer con el PDF generado
+    """
+    
+    buffer = BytesIO()
+    
+    # Crear documento
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(letter),
+        rightMargin=0.5*inch,
+        leftMargin=0.5*inch,
+        topMargin=0.5*inch,
+        bottomMargin=0.5*inch
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    # Estilos personalizados
+    titulo_style = ParagraphStyle(
+        'TituloHistorial',
+        parent=styles['Heading1'],
+        fontSize=16,
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        textColor=colors.HexColor('#1a3c34')
+    )
+    
+    subtitulo_style = ParagraphStyle(
+        'SubtituloHistorial',
+        parent=styles['Normal'],
+        fontSize=10,
+        alignment=TA_CENTER,
+        spaceAfter=15
+    )
+    
+    # Elementos del PDF
+    elementos = []
+    
+    # Título
+    elementos.append(Paragraph("📋 HISTORIAL DE FACTURAS", titulo_style))
+    elementos.append(Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", subtitulo_style))
+    
+    # Mostrar filtros aplicados
+    if filtros:
+        filtros_texto = []
+        if filtros.get('fecha_inicio'):
+            filtros_texto.append(f"Desde: {filtros['fecha_inicio'].strftime('%d/%m/%Y')}")
+        if filtros.get('fecha_fin'):
+            filtros_texto.append(f"Hasta: {filtros['fecha_fin'].strftime('%d/%m/%Y')}")
+        if filtros.get('cliente'):
+            filtros_texto.append(f"Cliente: {filtros['cliente']}")
+        if filtros.get('metodo_pago'):
+            filtros_texto.append(f"Método: {filtros['metodo_pago']}")
+        if filtros.get('estado'):
+            filtros_texto.append(f"Estado: {filtros['estado']}")
+        
+        if filtros_texto:
+            elementos.append(Paragraph(f"Filtros: {', '.join(filtros_texto)}", subtitulo_style))
+    
+    elementos.append(Spacer(1, 0.2 * inch))
+    
+    # Tabla de facturas
+    headers = ['Folio', 'Fecha', 'Cliente', 'Documento', 'Subtotal', 'IVA', 'Total', 'Método', 'Estado']
+    data = [headers]
+    
+    total_general = 0
+    for f in facturas:
+        data.append([
+            f.folio,
+            f.fecha.strftime('%d/%m/%Y %H:%M') if f.fecha else '',
+            f.cliente_nombre[:30],
+            f.cliente_documento or '',
+            f'${f.subtotal:,.2f}',
+            f'${f.iva:,.2f}',
+            f'${f.total:,.2f}',
+            f.metodo_pago,
+            f.estado
+        ])
+        total_general += f.total
+    
+    # Fila de total
+    data.append(['', '', '', '', '', '', f'${total_general:,.2f}', '', ''])
+    
+    # Anchos de columna
+    col_widths = [
+        0.9*inch,   # Folio
+        1.0*inch,   # Fecha
+        1.5*inch,   # Cliente
+        0.8*inch,   # Documento
+        0.8*inch,   # Subtotal
+        0.8*inch,   # IVA
+        0.8*inch,   # Total
+        0.8*inch,   # Método
+        0.8*inch    # Estado
+    ]
+    
+    tabla = Table(data, colWidths=col_widths, repeatRows=1)
+    
+    # Estilo de la tabla
+    table_style = [
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('TOPPADDING', (0, 0), (-1, 0), 6),
+        
+        # Alinear columnas numéricas a la derecha
+        ('ALIGN', (4, 1), (6, -2), 'RIGHT'),
+        
+        # Líneas
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#bdc3c7')),
+        ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#2c3e50')),
+        
+        # Fila de total
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f4f8')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, -1), (-1, -1), 10),
+        ('ALIGN', (6, -1), (6, -1), 'RIGHT'),
+    ]
+    
+    # Resaltar filas anuladas
+    for i in range(1, len(data) - 1):
+        if i <= len(facturas):
+            factura = facturas[i-1]
+            if factura.estado == 'ANULADA':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#ffe6e6')))
+    
+    tabla.setStyle(TableStyle(table_style))
+    elementos.append(tabla)
+    
+    # Pie de página
+    elementos.append(Spacer(1, 0.3 * inch))
+    footer_text = f"Total de facturas: {len(facturas)} - Reporte generado automáticamente"
+    footer = Paragraph(
+        footer_text,
+        ParagraphStyle('Footer', parent=styles['Italic'], alignment=TA_CENTER, fontSize=8, textColor=colors.grey)
+    )
+    elementos.append(footer)
+    
+    # Construir PDF
+    doc.build(elementos)
+    buffer.seek(0)
+    
+    return buffer

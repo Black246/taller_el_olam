@@ -1,4 +1,4 @@
-<!-- historial_facturas.html - Versión corregida -->
+<!-- historial_facturas.html - Versión corregida con filtros y Excel -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -6,33 +6,61 @@
 
 <div class="card">
     <div class="card-body">
-        <!-- Filtros -->
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <input type="text" id="filtro-cliente" class="form-control" placeholder="🔍 Buscar por cliente...">
-            </div>
+        <!-- Filtros mejorados con formulario -->
+        <form method="GET" class="row g-3 mb-3" id="filtros-form">
             <div class="col-md-3">
-                <input type="date" id="filtro-fecha" class="form-control">
+                <label class="form-label">Cliente</label>
+                <input type="text" name="cliente" class="form-control form-modern" 
+                    placeholder="Buscar cliente..." 
+                    value="{{ request.args.get('cliente', '') }}">
             </div>
-            <div class="col-md-3">
-                <select id="filtro-estado" class="form-control">
-                    <option value="">Todos los estados</option>
-                    <option value="PAGADA">✅ Pagadas</option>
-                    <option value="ANULADA">🚫 Anuladas</option>
+            <div class="col-md-2">
+                <label class="form-label">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" class="form-control form-modern" 
+                    value="{{ request.args.get('fecha_inicio', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Fecha Fin</label>
+                <input type="date" name="fecha_fin" class="form-control form-modern" 
+                    value="{{ request.args.get('fecha_fin', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Método Pago</label>
+                <select name="metodo_pago" class="form-control form-modern">
+                    <option value="">Todos</option>
+                    <option value="EFECTIVO" {% if request.args.get('metodo_pago') == 'EFECTIVO' %}selected{% endif %}>💵 Efectivo</option>
+                    <option value="TARJETA_DEBITO" {% if request.args.get('metodo_pago') == 'TARJETA_DEBITO' %}selected{% endif %}>💳 Débito</option>
+                    <option value="TARJETA_CREDITO" {% if request.args.get('metodo_pago') == 'TARJETA_CREDITO' %}selected{% endif %}>💳 Crédito</option>
+                    <option value="TRANSFERENCIA" {% if request.args.get('metodo_pago') == 'TRANSFERENCIA' %}selected{% endif %}>🏦 Transferencia</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button class="btn btn-primary w-100" onclick="aplicarFiltros()">Aplicar</button>
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-control form-modern">
+                    <option value="">Todos</option>
+                    <option value="PAGADA" {% if request.args.get('estado') == 'PAGADA' %}selected{% endif %}>✅ Pagadas</option>
+                    <option value="ANULADA" {% if request.args.get('estado') == 'ANULADA' %}selected{% endif %}>🚫 Anuladas</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+
+        <!-- Botones de acción -->
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <span class="facturas-counter">{{ facturas|length }} facturas encontradas</span>
+            <div>
+                <a href="{{ url_for('web.historial_facturas') }}" class="btn btn-secondary btn-sm">🔄 Limpiar</a>
+                <!-- ✅ Botón Exportar Excel -->
+                <a href="{{ url_for('web.exportar_excel', **request.args) }}" class="btn btn-success btn-sm">
+                    📊 Exportar Excel
+                </a>
             </div>
         </div>
 
-        <!-- Contador -->
-        <div class="mb-3">
-            <span class="badge bg-primary" id="contador-facturas">{{ facturas|length }} facturas encontradas</span>
-        </div>
-
         <div class="table-responsive">
-            <table class="table table-striped table-hover" id="tabla-facturas">
+            <table class="table table-hover table-modern" id="tabla-facturas">
                 <thead>
                     <tr>
                         <th>Folio</th>
@@ -51,9 +79,9 @@
                     {% if facturas %}
                         {% for factura in facturas %}
                         <tr class="{% if factura.estado == 'ANULADA' %}table-danger{% endif %}" 
-                            data-fecha="{{ factura.created_at.strftime('%Y-%m-%d') if factura.created_at else '' }}">
+                            data-fecha="{{ factura.fecha.strftime('%Y-%m-%d') if factura.fecha else '' }}">
                             <td><strong>{{ factura.folio }}</strong></td>
-                            <td>{{ factura.created_at.strftime('%d/%m/%Y %H:%M') if factura.created_at else 'N/A' }}</td>
+                            <td>{{ factura.fecha.strftime('%d/%m/%Y %H:%M') if factura.fecha else 'N/A' }}</td>
                             <td>{{ factura.cliente_nombre }}</td>
                             <td>{{ factura.cliente_documento or 'N/A' }}</td>
                             <td>${{ "%.2f"|format(factura.subtotal) }}</td>
@@ -71,22 +99,24 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="/factura/{{ factura.id }}/pdf" 
+                                    <!-- ✅ PDF abre en nueva ventana -->
+                                    <a href="{{ url_for('web.ver_factura_pdf', id=factura.id) }}" 
                                         target="_blank" 
                                         class="btn btn-primary" 
                                         title="Ver PDF">
-                                        📄
+                                        <i class="bi bi-file-earmark-pdf"></i>
                                     </a>
-                                    <a href="/factura/{{ factura.id }}/descargar-pdf" 
+                                    <!-- ✅ Descarga PDF -->
+                                    <a href="{{ url_for('web.descargar_factura_pdf', id=factura.id) }}" 
                                         class="btn btn-success" 
                                         title="Descargar PDF">
-                                        ⬇️
+                                        <i class="bi bi-download"></i>
                                     </a>
                                     {% if factura.estado != 'ANULADA' %}
                                     <button class="btn btn-danger" 
                                             onclick="anularFactura({{ factura.id }})" 
                                             title="Anular factura">
-                                        🚫
+                                        <i class="bi bi-x-circle"></i>
                                     </button>
                                     {% endif %}
                                 </div>
@@ -107,6 +137,14 @@
                     </tr>
                     {% endif %}
                 </tbody>
+                <!-- ✅ Total general -->
+                <tfoot>
+                    <tr class="table-secondary">
+                        <th colspan="6" class="text-end">TOTAL GENERAL:</th>
+                        <th><strong>${{ "%.2f"|format(facturas|sum(attribute='total')) }}</strong></th>
+                        <th colspan="3"></th>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -125,12 +163,10 @@ async function anularFactura(id) {
     btn.innerHTML = '⏳';
     
     try {
-        // 🔥 Usar el token de sesión de Flask
         const response = await fetch(`/api/facturas/${id}/anular`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-                // No necesitas Authorization porque la ruta ya no usa JWT
             }
         });
         
@@ -152,58 +188,12 @@ async function anularFactura(id) {
     }
 }
 
-// Función para filtrar facturas
-function aplicarFiltros() {
-    const filtroCliente = document.getElementById('filtro-cliente').value.toLowerCase().trim();
-    const filtroFecha = document.getElementById('filtro-fecha').value;
-    const filtroEstado = document.getElementById('filtro-estado').value;
-    
-    const rows = document.querySelectorAll('#tabla-facturas tbody tr');
-    let visibleCount = 0;
-    
-    rows.forEach(row => {
-        let mostrar = true;
-        
-        // Filtro por cliente (columna 2)
-        if (filtroCliente) {
-            const cliente = row.cells[2].textContent.toLowerCase();
-            if (!cliente.includes(filtroCliente)) {
-                mostrar = false;
-            }
-        }
-        
-        // Filtro por fecha (usando data attribute)
-        if (filtroFecha && mostrar) {
-            const fechaFila = row.getAttribute('data-fecha');
-            if (fechaFila !== filtroFecha) {
-                mostrar = false;
-            }
-        }
-        
-        // Filtro por estado (columna 8)
-        if (filtroEstado && mostrar) {
-            const estadoCelda = row.cells[8].textContent.trim();
-            if (!estadoCelda.includes(filtroEstado)) {
-                mostrar = false;
-            }
-        }
-        
-        row.style.display = mostrar ? '' : 'none';
-        if (mostrar) visibleCount++;
-    });
-    
-    // Actualizar contador
-    const contador = document.getElementById('contador-facturas');
-    if (contador) {
-        contador.textContent = `${visibleCount} facturas encontradas`;
-    }
-}
-
-// Event listeners
+// Los filtros ahora se manejan con el formulario (GET)
+// Este script ya no es necesario porque el formulario envía los filtros al servidor
+// Se mantiene solo por compatibilidad
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('filtro-cliente')?.addEventListener('input', aplicarFiltros);
-    document.getElementById('filtro-fecha')?.addEventListener('change', aplicarFiltros);
-    document.getElementById('filtro-estado')?.addEventListener('change', aplicarFiltros);
+    // Los filtros se aplican mediante el formulario
+    // El contador se actualiza automáticamente con el renderizado
 });
 </script>
 {% endblock %}

@@ -1,13 +1,21 @@
 # backend/app/__init__.py
 
 from app.routes import web_bp
-from flask import Flask, jsonify
+from flask import Flask, app, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 from app.config import Config
 from app.extensions import db, migrate
 from app.middleware.error_handler import register_error_handlers
+from app.utils.formatters import (  # Importar los formateadores
+    format_currency,
+    format_date,
+    format_number,
+    format_percentage,
+    truncate_text,
+    format_product_code
+)
 
 jwt = JWTManager()
 
@@ -44,7 +52,7 @@ def create_app(config_class=Config):
         app,
         origins=app.config["CORS_ORIGINS"]
     )
-
+    
 
     jwt.init_app(app)
 
@@ -53,6 +61,24 @@ def create_app(config_class=Config):
     # ==========================
 
     register_error_handlers(app)
+    
+    # ==========================
+    # Registrar filtros personalizados
+    # ==========================
+    # Mapeo de nombres de filtros a funciones
+    filters = {
+        'currency': format_currency,
+        'date': format_date,
+        'number': format_number,
+        'percentage': format_percentage,
+        'truncate': truncate_text,
+        'product_code': format_product_code,
+    }
+    
+    # Registrar todos los filtros en Jinja
+    for filter_name, filter_func in filters.items():
+        app.jinja_env.filters[filter_name] = filter_func
+    
 
     # ==========================
     # Blueprints

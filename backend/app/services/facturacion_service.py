@@ -173,8 +173,12 @@ class FacturacionService:
                 metodo_pago=data.get(
                     "metodo_pago",
                     "EFECTIVO"
-                )
+                ),
+                
+                fecha=datetime.utcnow(),     # ✅ Asignación explícita
+                updated_at=datetime.utcnow()  # ✅ Asignación explícita
             )
+            
 
             db.session.add(
                 factura

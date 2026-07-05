@@ -12,7 +12,7 @@ from app.schemas import (
 )
 
 from app.extensions import db
-from backend.app.models.producto import Producto
+from app.models.producto import Producto
 
 
 @productos_bp.route("/", methods=["GET"])

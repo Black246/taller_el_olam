@@ -27,11 +27,22 @@ body {
 }
 
 /* ========== SIDEBAR MODERNO ========== */
+/* ========== SIDEBAR MODERNO ========== */
 .sidebar {
     min-height: 100vh;
     background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
     box-shadow: 4px 0 20px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
+
+    /* NUEVO */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 16.666667%; /* mismo ancho que col-md-2 */
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
 }
 
 .sidebar .nav-link {
@@ -57,6 +68,29 @@ body {
     color: var(--primary-dark);
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
+.content {
+    margin-left: 16.666667%;
+}
+
+/* Scroll elegante */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.35);
+}
+
 
 /* ========== TARJETAS DEL DASHBOARD ========== */
 .dashboard-card {
@@ -121,11 +155,28 @@ body {
 }
 
 .table-modern tbody tr {
-    transition: background 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .table-modern tbody tr:hover {
     background: rgba(212, 163, 115, 0.08);
+    transform: scale(1.002);
+}
+
+.btn-group .btn i {
+    font-size: 1rem;
+}
+
+.facturas-counter {
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-light)
+    );
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 600;
 }
 
 /* ========== BOTONES ========== */
@@ -208,17 +259,17 @@ body {
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .sidebar {
-        position: fixed;
-        bottom: 0;
+        position: relative;
         width: 100%;
-        z-index: 1000;
-        min-height: auto;
+        height: auto;
+        overflow: visible;
     }
-    
+
     .content {
-        margin-bottom: 80px;
+        margin-left: 0;
+        margin-bottom: 0;
     }
-    
+
     .dashboard-card .card-value {
         font-size: 1.5rem;
     }
