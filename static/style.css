@@ -399,3 +399,305 @@ body {
 .fade-in-up {
     animation: fadeInUp 0.4s ease-out;
 }
+
+/* ==================== MEJORAS PARA MÓVIL ==================== */
+
+/* Sidebar en móvil - oculto por defecto */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+}
+
+.sidebar.open {
+    transform: translateX(0);
+}
+
+/* Overlay para cerrar sidebar en móvil */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1040;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Top bar para móvil */
+.mobile-topbar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.mobile-topbar .brand {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.mobile-topbar .brand i {
+    font-size: 1.3rem;
+}
+
+.btn-menu {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.btn-menu:focus {
+    outline: none;
+}
+
+/* Content con padding para móvil */
+.content {
+    padding: 1rem;
+    min-height: 100vh;
+}
+
+/* Tarjetas en móvil - más compactas */
+.dashboard-card .card-body {
+    padding: 1rem !important;
+}
+
+.dashboard-card .card-value {
+    font-size: 1.5rem !important;
+}
+
+.dashboard-card .card-title {
+    font-size: 0.7rem !important;
+}
+
+/* Botones de acción rápida en móvil */
+.btn-quick-action {
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 12px !important;
+    transition: transform 0.2s ease;
+}
+
+.btn-quick-action:active {
+    transform: scale(0.95);
+}
+
+.btn-quick-action i {
+    font-size: 1.5rem !important;
+}
+
+/* Tablas en móvil - scroll horizontal */
+.table-responsive-mobile {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive-mobile table {
+    min-width: 600px;
+    font-size: 0.85rem;
+}
+
+/* Dropdown en móvil - mejor visible */
+.dropdown-menu {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.dropdown-item {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Scrollbar para el sidebar en móvil */
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+}
+
+/* Animación de entrada para el sidebar */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.sidebar.open {
+    animation: slideIn 0.3s ease forwards;
+}
+
+/* Estilo para el badge de usuario en móvil */
+.user-badge-mobile {
+    display: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    /* Mostrar top bar en móvil */
+    .mobile-topbar {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Ocultar sidebar en desktop y mostrarlo como menú */
+    .sidebar {
+        position: fixed;
+        width: 280px;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* El contenido ocupa todo el ancho */
+    .content {
+        margin-left: 0 !important;
+        padding: 0.75rem !important;
+        padding-top: 0.5rem !important;
+    }
+
+    /* Ajustar tarjetas */
+    .dashboard-card .card-value {
+        font-size: 1.3rem !important;
+    }
+
+    .dashboard-card .card-title {
+        font-size: 0.65rem !important;
+    }
+
+    /* Gráficos más pequeños */
+    .card-body canvas {
+        max-height: 200px !important;
+    }
+
+    /* Alertas más compactas */
+    .alert {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Títulos más pequeños */
+    h1 {
+        font-size: 1.5rem !important;
+    }
+    h2 {
+        font-size: 1.3rem !important;
+    }
+    h3 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Botones de acción en grid 2x2 */
+    .btn-quick-action {
+        padding: 0.6rem 0.3rem !important;
+        font-size: 0.65rem !important;
+        border-radius: 10px !important;
+    }
+
+    .btn-quick-action i {
+        font-size: 1.3rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+
+    /* Dropdown en móvil */
+    .dropdown-menu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        border-radius: 20px 20px 0 0 !important;
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 1rem 0;
+        transform: none !important;
+    }
+
+    .dropdown-menu .dropdown-item {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .dropdown-menu .dropdown-item:last-child {
+        border-bottom: none;
+    }
+
+    .user-badge-mobile {
+        display: inline-block;
+        background: rgba(255,255,255,0.15);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: white;
+    }
+}
+
+@media (min-width: 769px) {
+    /* En desktop, sidebar siempre visible */
+    .sidebar {
+        position: relative !important;
+        transform: translateX(0) !important;
+        width: 16.666667% !important;
+        height: 100vh !important;
+        z-index: auto !important;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.1) !important;
+    }
+
+    .mobile-topbar {
+        display: none !important;
+    }
+
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .content {
+        margin-left: 0 !important;
+    }
+}
