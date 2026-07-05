@@ -701,3 +701,126 @@ body {
         margin-left: 0 !important;
     }
 }
+
+/* ==================== DROPDOWN EN SIDEBAR ==================== */
+
+/* Estilos para dropdown en el sidebar */
+.sidebar .dropdown {
+    position: relative;
+}
+
+.sidebar .dropdown-toggle {
+    cursor: pointer;
+}
+
+.sidebar .dropdown-toggle::after {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidebar .dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+/* Dropdown menu en sidebar - Desktop */
+.sidebar .dropdown-menu {
+    position: static !important;
+    float: none !important;
+    background: rgba(255,255,255,0.08) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.25rem 0 !important;
+    margin: 0 12px 4px 12px !important;
+    box-shadow: none !important;
+    width: auto !important;
+    transform: none !important;
+    transition: all 0.3s ease;
+}
+
+.sidebar .dropdown-menu.show {
+    display: block !important;
+}
+
+.sidebar .dropdown-item {
+    color: rgba(255,255,255,0.75) !important;
+    padding: 10px 24px 10px 48px !important;
+    border-radius: 8px !important;
+    font-weight: 400 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease;
+}
+
+.sidebar .dropdown-item:hover {
+    background: rgba(255,255,255,0.1) !important;
+    color: white !important;
+    transform: translateX(4px);
+}
+
+.sidebar .dropdown-item:active {
+    background: var(--secondary) !important;
+    color: var(--primary-dark) !important;
+}
+
+.sidebar .dropdown-item i {
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE DROPDOWN EN MÓVIL ===== */
+@media (max-width: 768px) {
+    .sidebar .dropdown-menu {
+        background: rgba(255,255,255,0.05) !important;
+        margin: 0 8px 4px 8px !important;
+        border-radius: 10px !important;
+        max-height: none !important;
+        position: static !important;
+        width: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        transform: none !important;
+        padding: 0.25rem 0 !important;
+        overflow-y: visible !important;
+    }
+
+    .sidebar .dropdown-item {
+        padding: 10px 20px 10px 44px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Remover el fixed position del dropdown en móvil */
+    .dropdown-menu {
+        position: static !important;
+        width: 100% !important;
+        border-radius: 10px !important;
+        max-height: none !important;
+        padding: 0.25rem 0 !important;
+        margin: 0 !important;
+    }
+
+    .dropdown-menu .dropdown-item {
+        padding: 0.6rem 1rem !important;
+        font-size: 0.9rem !important;
+        border-bottom: none !important;
+    }
+}
+
+/* Ajuste para que el dropdown no se desborde */
+.sidebar .dropdown-menu {
+    overflow: visible !important;
+}
+
+/* Animación suave para el dropdown */
+.sidebar .dropdown-menu {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    padding: 0 !important;
+}
+
+.sidebar .dropdown-menu.show {
+    max-height: 500px;
+    opacity: 1;
+    padding: 0.25rem 0 !important;
+}
