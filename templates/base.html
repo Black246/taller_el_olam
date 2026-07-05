@@ -34,7 +34,7 @@
 
     <div class="container-fluid p-0">
         <div class="row g-0">
-            <!-- ===== SIDEBAR ===== -->
+            <!-- ===== SIDEBAR CON ICONOS BOOTSTRAP ===== -->
             <div class="sidebar p-0" id="sidebar">
                 <div class="p-3 p-md-4 text-white text-center">
                     <div class="mb-3">
@@ -47,7 +47,6 @@
                         <i class="bi bi-person-circle me-1"></i>
                         Bienvenido, <strong>{{ current_user.nombre|default('Usuario') }}</strong>
                     </small>
-                    <!-- Botón cerrar sidebar en móvil -->
                     <button class="btn btn-sm btn-outline-light mt-2 d-md-none w-100" id="closeMenuBtn">
                         <i class="bi bi-x-lg me-1"></i> Cerrar menú
                     </button>
@@ -78,7 +77,7 @@
                         <i class="bi bi-file-text"></i> Reporte de Inventario
                     </a>
 
-                    <!-- Dropdown de Reportes -->
+                    <!-- ===== DROPDOWN DE REPORTES CORREGIDO ===== -->
                     <div class="dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-graph-up"></i> Reportes
@@ -127,7 +126,6 @@
         const overlay = document.getElementById('sidebarOverlay');
         const menuToggle = document.getElementById('menuToggle');
         const closeMenuBtn = document.getElementById('closeMenuBtn');
-        const mainContent = document.getElementById('mainContent');
 
         function openSidebar() {
             sidebar.classList.add('open');
@@ -141,23 +139,20 @@
             document.body.style.overflow = '';
         }
 
-        // Abrir sidebar
         if (menuToggle) {
             menuToggle.addEventListener('click', openSidebar);
         }
 
-        // Cerrar sidebar con botón
         if (closeMenuBtn) {
             closeMenuBtn.addEventListener('click', closeSidebar);
         }
 
-        // Cerrar sidebar con overlay
         if (overlay) {
             overlay.addEventListener('click', closeSidebar);
         }
 
         // Cerrar sidebar al hacer clic en un enlace (en móvil)
-        document.querySelectorAll('.sidebar .nav-link').forEach(function(link) {
+        document.querySelectorAll('.sidebar .nav-link, .sidebar .dropdown-item').forEach(function(link) {
             link.addEventListener('click', function() {
                 if (window.innerWidth <= 768) {
                     closeSidebar();
@@ -172,10 +167,11 @@
             }
         });
 
-        // ===== DROPDOWN EN MÓVIL - CIERRE AUTOMÁTICO =====
+        // ===== DROPDOWN EN MÓVIL - MEJORADO =====
         document.querySelectorAll('.dropdown-toggle').forEach(function(dropdownToggle) {
             dropdownToggle.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 const parent = this.closest('.dropdown');
                 const menu = parent.querySelector('.dropdown-menu');
                 const isOpen = menu.classList.contains('show');
@@ -201,7 +197,27 @@
             }
         });
 
+        // ===== VERIFICAR QUE LA RUTA EXISTE =====
         console.log('✅ Sidebar móvil inicializado');
+        console.log('🔍 Verificando ruta dashboard_financiero...');
+        
+        // Probar si la ruta existe (solo para debugging)
+        fetch('{{ url_for("web.dashboard_financiero") }}', {
+            method: 'HEAD',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('✅ Dashboard Financiero disponible');
+            } else {
+                console.warn('⚠️ Dashboard Financiero no disponible (status: ' + response.status + ')');
+            }
+        })
+        .catch(err => {
+            console.warn('⚠️ Error verificando Dashboard Financiero:', err);
+        });
     </script>
 </body>
 </html>
