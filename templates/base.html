@@ -155,8 +155,7 @@
         document.querySelectorAll('.sidebar .nav-link, .sidebar .dropdown-item').forEach(function(link) {
             link.addEventListener('click', function() {
                 if (window.innerWidth <= 768) {
-                    // Pequeño delay para que el dropdown se cierre primero
-                    setTimeout(closeSidebar, 150);
+                    setTimeout(closeSidebar, 200);
                 }
             });
         });
@@ -168,11 +167,14 @@
             }
         });
 
-        // ===== DROPDOWN TOGGLE MEJORADO =====
+        // ===== DROPDOWN TOGGLE MANUAL =====
         document.addEventListener('DOMContentLoaded', function() {
             const dropdownToggles = document.querySelectorAll('.sidebar .dropdown-toggle');
 
             dropdownToggles.forEach(function(toggle) {
+                // Remover el comportamiento de Bootstrap
+                toggle.removeAttribute('data-bs-toggle');
+                
                 toggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -185,7 +187,8 @@
                     document.querySelectorAll('.sidebar .dropdown-menu.show').forEach(function(m) {
                         if (m !== menu) {
                             m.classList.remove('show');
-                            m.closest('.dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+                            const btn = m.closest('.dropdown').querySelector('.dropdown-toggle');
+                            if (btn) btn.setAttribute('aria-expanded', 'false');
                         }
                     });
 
@@ -200,13 +203,13 @@
                 });
             });
 
-            // Cerrar dropdowns al hacer clic fuera
+            // Cerrar dropdowns al hacer clic fuera del sidebar
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('.sidebar .dropdown')) {
+                if (!e.target.closest('.sidebar')) {
                     document.querySelectorAll('.sidebar .dropdown-menu.show').forEach(function(m) {
                         m.classList.remove('show');
-                        const toggle = m.closest('.dropdown').querySelector('.dropdown-toggle');
-                        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                        const btn = m.closest('.dropdown').querySelector('.dropdown-toggle');
+                        if (btn) btn.setAttribute('aria-expanded', 'false');
                     });
                 }
             });
