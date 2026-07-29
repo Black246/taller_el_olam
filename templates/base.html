@@ -195,5 +195,18 @@
 
         console.log('✅ Sidebar inicializado');
     </script>
+
+        <!-- base.html -->
+    {% if not public_page %}
+        <!-- Sidebar -->
+        <div class="sidebar p-0" id="sidebar">
+            <!-- ... contenido del sidebar ... -->
+        </div>
+    {% endif %}
+
+    <!-- Content -->
+    <div class="{% if public_page %}col-12{% else %}col-md-10{% endif %} content p-4">
+        <!-- ... -->
+</div>
 </body>
 </html>

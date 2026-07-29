@@ -74,7 +74,7 @@ def login():
         except Exception as e:
             flash(str(e))
 
-    return render_template("login.html")
+    return render_template("login.html", public_page=True)
 
 
 @web_bp.route("/logout")
@@ -651,4 +651,4 @@ def register():
         except Exception as e:
             flash(f"❌ Error al registrar: {str(e)}", "danger")
     
-    return render_template("register.html")
+    return render_template("register.html", public_page=True)
