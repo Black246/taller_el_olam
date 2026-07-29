@@ -14,7 +14,7 @@ from flask import (
     jsonify,
     
 )
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import current_user, jwt_required
 
 from app.models.proveedor import Proveedor
 from app.extensions import db
@@ -615,3 +615,40 @@ def exportar_excel():
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Error al exportar Excel'}), 500
+    
+# app/routes.py - Agregar ruta de registro
+@web_bp.route("/register", methods=["GET", "POST"])
+def register():
+    """Registro de nuevos usuarios con Neon Auth"""
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
+        
+        # Validar contraseñas
+        if password != confirm_password:
+            flash("❌ Las contraseñas no coinciden", "danger")
+            return render_template("register.html")
+        
+        if len(password) < 6:
+            flash("❌ La contraseña debe tener al menos 6 caracteres", "danger")
+            return render_template("register.html")
+        
+        # Validar rol (solo admin puede asignar)
+        rol = request.form.get("rol", "mecanico")
+        if current_user and current_user.rol == 'admin':
+            rol = request.form.get("rol", "mecanico")
+        else:
+            rol = "mecanico"
+        
+        try:
+            resultado = AuthService.register_user(nombre, email, password, rol)
+            session["access_token"] = resultado["access_token"]
+            session["user"] = resultado["user"]
+            flash("✅ Usuario registrado exitosamente", "success")
+            return redirect(url_for("web.home"))
+        except Exception as e:
+            flash(f"❌ Error al registrar: {str(e)}", "danger")
+    
+    return render_template("register.html")
