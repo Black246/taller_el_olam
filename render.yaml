@@ -7,14 +7,24 @@ services:
       pip install -r requirements.txt
     startCommand: |
       cd backend
+      flask db upgrade
+      cd ..
       gunicorn wsgi:app --bind 0.0.0.0:10000
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.13
+      # 🔥 CAMBIAR: Usar DATABASE_URL de Neon (no de Render)
       - key: DATABASE_URL
-        fromDatabase:
-          name: taller-db
-          property: connectionString
+        value:postgresql://neondb_owner:npg_8dc9DaMPkQFg@ep-odd-bread-ay0njbtv-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      # 🔥 AGREGAR: Variables de Neon
+      - key: NEON_API_KEY
+        value: napi_8ro9d2gtzwowvkyrhhn4fxqnh3r205edx5605g1ppex91vjykw1gp2y0s37nvcrl
+      - key: NEON_PROJECT_ID
+        value: icy-leaf-97624748
+      - key: NEON_AUTH_URL
+        value: https://ep-odd-bread-ay0njbtv.neonauth.c-5.us-east-2.aws.neon.tech/neondb/auth
+      - key: NEON_JWKS_URL
+        value: https://ep-odd-bread-ay0njbtv.neonauth.c-5.us-east-2.aws.neon.tech/neondb/auth/.well-known/jwks.json
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
@@ -50,10 +60,3 @@ services:
       - key: PDF_FOLDER_PATH
         value: facturas_pdf
     healthCheckPath: /api/health
-
-  - type: postgresql
-    name: taller-db
-    databaseName: taller_el_olam
-    user: taller_user
-    plan: starter
-    region: oregon
