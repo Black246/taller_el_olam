@@ -24,7 +24,12 @@ class Producto(db.Model):
             db.String(100),
             nullable=False
         )
-
+        
+        marca = db.Column(
+            db.String(50), 
+            nullable=True
+        )
+        
         categoria = db.Column(
             db.String(50)
         )
@@ -105,6 +110,7 @@ class Producto(db.Model):
                 "codigo": self.codigo,
                 "nombre": self.nombre,
                 "categoria": self.categoria,
+                "marca": self.marca,
                 "descripcion": self.descripcion,
                 "stock": self.stock,
                 "stock_minimo": self.stock_minimo,

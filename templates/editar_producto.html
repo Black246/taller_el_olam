@@ -31,6 +31,28 @@
                         required
                     >
                 </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" value="{{ producto.marca or '' }}" placeholder="Ej: Bosch, Honda, Yamaha" list="marcas">
+                    <datalist id="marcas">
+                        <option value="Bosch">
+                        <option value="Honda">
+                        <option value="Yamaha">
+                        <option value="Toyota">
+                        <option value="Chevrolet">
+                        <option value="Ford">
+                        <option value="Nissan">
+                        <option value="Mazda">
+                        <option value="Kia">
+                        <option value="Hyundai">
+                        <option value="Mitsubishi">
+                        <option value="Suzuki">
+                        <option value="Ducati">
+                        <option value="Kawasaki">
+                        <option value="Harley-Davidson">
+                    </datalist>
+                </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Categoría</label>

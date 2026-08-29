@@ -9,70 +9,73 @@
 <!-- Buscador -->
 <div class="card mb-4">
     <div class="card-body">
-        <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar por código o nombre...">
+        <div class="row">
+            <div class="col-md-8">
+                <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar por código, nombre o marca...">
+            </div>
+            <div class="col-md-4">
+                <select id="filtroMarca" class="form-control">
+                    <option value="">Todas las marcas</option>
+                    {% for marca in marcas %}
+                        <option value="{{ marca }}">{{ marca }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Tabla de productos -->
 <div class="card">
     <div class="card-body">
-        <table class="table table-striped" id="tablaProductos">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Categoría</th>
-                    <th>Stock</th>
-                    <th>Mínimo</th>
-                    <th>Precio Venta</th>
-                    <th>Ubicación</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for producto in productos %}
-                <tr>
-                    <td>{{ producto.codigo }}</td>
-                    <td>{{ producto.nombre }}</td>
-                    <td>{{ producto.categoria or '-' }}</td>
-                    <td class="{% if producto.stock <= producto.stock_minimo %}bg-danger text-white{% endif %}">
-                        {{ producto.stock }}
-                    </td>
-                    <td>{{ producto.stock_minimo }}</td>
-                    <td>${{ "%.2f"|format(producto.precio_venta) }}</td>
-                    <td>{{ producto.ubicacion or '-' }}</td>
-                    <td>
-                    <a
-                        href="{{ url_for('web.editar_producto', id=producto.id) }}"
-                        class="btn btn-sm btn-primary">
-                        ✏️
-                    </a>
-                    <form
-                        method="POST"
-                        action="{{ url_for('web.eliminar_producto', id=producto.id) }}"
-                        style="display:inline;"
-                        onsubmit="return confirm('¿Eliminar este producto?');"
-                    >
-                        <button
-                            type="submit"
-                            class="btn btn-sm btn-danger">
-                            🗑️
-                        </button>
-                    </form>                        
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="8" class="text-center">No hay productos registrados</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped" id="tablaProductos">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Marca</th>  <!-- 🔥 NUEVO -->
+                        <th>Categoría</th>
+                        <th>Stock</th>
+                        <th>Mínimo</th>
+                        <th>Precio Venta</th>
+                        <th>Ubicación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr data-marca="{{ producto.marca or '' }}">
+                        <td>{{ producto.codigo }}</td>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.marca or '-' }}</td>  <!-- 🔥 NUEVO -->
+                        <td>{{ producto.categoria or '-' }}</td>
+                        <td class="{% if producto.stock <= producto.stock_minimo %}bg-danger text-white{% endif %}">
+                            {{ producto.stock }}
+                        </td>
+                        <td>{{ producto.stock_minimo }}</td>
+                        <td>${{ "%.2f"|format(producto.precio_venta) }}</td>
+                        <td>{{ producto.ubicacion or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('web.editar_producto', id=producto.id) }}" class="btn btn-sm btn-primary">✏️</a>
+                            <form method="POST" action="{{ url_for('web.eliminar_producto', id=producto.id) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar este producto?');">
+                                <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center">No hay productos registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-    // Buscador en tiempo real
+    // Buscador en tiempo real (código, nombre, marca)
     document.getElementById('buscador').addEventListener('keyup', function() {
         let filtro = this.value.toLowerCase();
         let filas = document.querySelectorAll('#tablaProductos tbody tr');
@@ -86,18 +89,20 @@
             }
         });
     });
-    
-    function editarProducto(id) {
-        alert('Funcionalidad de edición - Producto ID: ' + id);
-        // Aquí puedes redirigir a una página de edición
-        // window.location.href = '/producto/editar/' + id;
-    }
-    
-    function eliminarProducto(id) {
-        if(confirm('¿Eliminar este producto?')) {
-            alert('Eliminar producto ID: ' + id);
-            // Aquí llamas a la API de eliminación
-        }
-    }
+
+    // Filtro por marca
+    document.getElementById('filtroMarca').addEventListener('change', function() {
+        let marcaSeleccionada = this.value.toLowerCase();
+        let filas = document.querySelectorAll('#tablaProductos tbody tr');
+        
+        filas.forEach(fila => {
+            let marcaFila = fila.getAttribute('data-marca').toLowerCase();
+            if (marcaSeleccionada === '' || marcaFila === marcaSeleccionada) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    });
 </script>
 {% endblock %}

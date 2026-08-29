@@ -145,10 +145,15 @@ def productos():
         .order_by(Producto.nombre)
         .all()
     )
+    
+    # 🔥 NUEVO: Obtener marcas únicas para el filtro
+    marcas = db.session.query(Producto.marca).distinct().filter(Producto.marca.isnot(None)).all()
+    marcas = [m[0] for m in marcas if m[0]]
 
     return render_template(
         "productos.html",
-        productos=productos
+        productos=productos,
+        marcas=sorted(marcas)  # 🔥 NUEVO
     )
 
 @web_bp.route("/compra")
@@ -300,6 +305,7 @@ def buscar_por_codigo():
             "id": producto.id,
             "codigo": producto.codigo,
             "nombre": producto.nombre,
+            "marca": producto.marca,  # 🔥 NUEVO: AGREGAR MARCA
             "stock": producto.stock,
             "precio_venta": producto.precio_venta
         })
@@ -398,6 +404,7 @@ def nuevo_producto():
             producto = Producto(
                 codigo=request.form["codigo"],
                 nombre=request.form["nombre"],
+                marca=request.form.get("marca"),  # 🔥 NUEVO: AGREGAR ESTA LÍNEA
                 categoria=request.form.get("categoria"),
                 ubicacion=request.form.get("ubicacion"),
                 stock=int(
@@ -458,6 +465,7 @@ def editar_producto(id):
 
         producto.codigo = request.form["codigo"]
         producto.nombre = request.form["nombre"]
+        producto.marca = request.form.get("marca")  # 🔥 NUEVO: AGREGAR ESTA LÍNEA
         producto.categoria = request.form.get("categoria")
         producto.ubicacion = request.form.get("ubicacion")
 

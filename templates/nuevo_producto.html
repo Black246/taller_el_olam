@@ -1,15 +1,15 @@
-
 {% extends "base.html" %}
 
 {% block content %}
 <h1 class="mb-4">➕ Nuevo Producto</h1>
 
 <script>
-    // Obtener parámetros de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const codigoUrl = urlParams.get('codigo');
     if (codigoUrl) {
-        document.getElementById('codigo-input').value = codigoUrl;
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('codigo-input').value = codigoUrl;
+        });
     }
 </script>
 
@@ -19,11 +19,33 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Código *</label>
-                    <input  id="codigo-input" type="text" name="codigo" class="form-control" value="{{ codigo }}" required>
+                    <input id="codigo-input" type="text" name="codigo" class="form-control" value="{{ codigo }}" required>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Nombre *</label>
                     <input type="text" name="nombre" class="form-control" required>
+                </div>
+                <!-- 🔥 NUEVO CAMPO: MARCA -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Marca</label>
+                    <input type="text" name="marca" class="form-control" placeholder="Ej: Bosch, Honda, Yamaha" list="marcas">
+                    <datalist id="marcas">
+                        <option value="Bosch">
+                        <option value="Honda">
+                        <option value="Yamaha">
+                        <option value="Toyota">
+                        <option value="Chevrolet">
+                        <option value="Ford">
+                        <option value="Nissan">
+                        <option value="Mazda">
+                        <option value="Kia">
+                        <option value="Hyundai">
+                        <option value="Mitsubishi">
+                        <option value="Suzuki">
+                        <option value="Ducati">
+                        <option value="Kawasaki">
+                        <option value="Harley-Davidson">
+                    </datalist>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Categoría</label>
@@ -36,6 +58,8 @@
                         <option value="Lubricantes">
                         <option value="Filtros">
                         <option value="Herramientas">
+                        <option value="Transmisión">
+                        <option value="Dirección">
                     </datalist>
                 </div>
                 <div class="col-md-6 mb-3">
