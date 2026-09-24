@@ -144,7 +144,6 @@ def generar_pdf_factura(factura, detalles, config=None):
     # Totales
     totales = [
         ["SUBTOTAL:", f"${factura.subtotal:,.0f}"],
-        ["IVA 19%:", f"${factura.iva:,.0f}"],
         ["TOTAL:", f"${factura.total:,.0f}"]
     ]
     totales_table = Table(totales, colWidths=[120*mm, 35*mm])
@@ -473,7 +472,7 @@ def generar_pdf_historial(facturas, filtros=None):
     elementos.append(Spacer(1, 0.2 * inch))
     
     # Tabla de facturas
-    headers = ['Folio', 'Fecha', 'Cliente', 'Documento', 'Subtotal', 'IVA', 'Total', 'Método', 'Estado']
+    headers = ['Folio', 'Fecha', 'Cliente', 'Documento', 'Subtotal', 'Total', 'Método', 'Estado']
     data = [headers]
     
     total_general = 0
@@ -484,7 +483,6 @@ def generar_pdf_historial(facturas, filtros=None):
             f.cliente_nombre[:30],
             f.cliente_documento or '',
             f'${f.subtotal:,.2f}',
-            f'${f.iva:,.2f}',
             f'${f.total:,.2f}',
             f.metodo_pago,
             f.estado
@@ -501,7 +499,6 @@ def generar_pdf_historial(facturas, filtros=None):
         1.5*inch,   # Cliente
         0.8*inch,   # Documento
         0.8*inch,   # Subtotal
-        0.8*inch,   # IVA
         0.8*inch,   # Total
         0.8*inch,   # Método
         0.8*inch    # Estado
@@ -514,7 +511,7 @@ def generar_pdf_historial(facturas, filtros=None):
         # Header
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (4, 1), (5, -2), 'RIGHT'),  # 🔥 Solo columnas 4 y 5 (subtotal, total)
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 8),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 6),

@@ -253,7 +253,6 @@ class FinancialService:
                 'Cliente': f.cliente_nombre,
                 'Documento': f.cliente_documento or '',
                 'Subtotal': float(f.subtotal),
-                'IVA': float(f.iva),
                 'Total': float(f.total),
                 'Método Pago': f.metodo_pago,
                 'Estado': f.estado

@@ -68,7 +68,6 @@
                         <th>Cliente</th>
                         <th>Documento</th>
                         <th>Subtotal</th>
-                        <th>IVA</th>
                         <th>Total</th>
                         <th>Método</th>
                         <th>Estado</th>
@@ -85,7 +84,6 @@
                             <td>{{ factura.cliente_nombre }}</td>
                             <td>{{ factura.cliente_documento or 'N/A' }}</td>
                             <td>${{ "%.2f"|format(factura.subtotal) }}</td>
-                            <td>${{ "%.2f"|format(factura.iva) }}</td>
                             <td><strong>${{ "%.2f"|format(factura.total) }}</strong></td>
                             <td>
                                 <span class="badge bg-secondary">{{ factura.metodo_pago }}</span>
@@ -140,7 +138,7 @@
                 <!-- ✅ Total general -->
                 <tfoot>
                     <tr class="table-secondary">
-                        <th colspan="6" class="text-end">TOTAL GENERAL:</th>
+                        <th colspan="5" class="text-end">TOTAL GENERAL:</th>
                         <th><strong>${{ "%.2f"|format(facturas|sum(attribute='total')) }}</strong></th>
                         <th colspan="3"></th>
                     </tr>

@@ -142,15 +142,10 @@ class FacturacionService:
                     * item["precio"]
                 )
 
-            iva_porcentaje = current_app.config[
-                "IVA_PORCENTAJE"
-            ]
 
-            iva = subtotal * (
-                iva_porcentaje / 100
-            )
+            iva = 0
 
-            total = subtotal + iva
+            total = subtotal
 
             factura = Factura(
                 folio=f"TEMP-{datetime.now().strftime('%Y%m%d%H%M%S')}",

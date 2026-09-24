@@ -136,16 +136,7 @@ class Config:
         "matecari10@hotmail.com"
     )
 
-    # ==========================
-    # IMPUESTOS
-    # ==========================
-
-    IVA_PORCENTAJE = float(
-        os.getenv(
-            "IVA_PORCENTAJE",
-            "19"
-        )
-    )
+    
     
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))

@@ -80,7 +80,7 @@ class Factura(db.Model):
                 "cliente_nombre": self.cliente_nombre,
                 "cliente_documento": self.cliente_documento,
                 "subtotal": self.subtotal,
-                "iva": self.iva,
+                "iva": 0,
                 "total": self.total,
                 "estado": self.estado,
                 "metodo_pago": self.metodo_pago,
